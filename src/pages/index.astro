@@ -1,0 +1,275 @@
+---
+import Base from '../layouts/Base.astro';
+import HomeSection from '../components/HomeSection.astro';
+import Hero from '../components/Hero.astro';
+import type { HeroItem } from '../components/Hero.astro';
+import TitleCard from '../components/TitleCard.astro';
+import TitleCarousel from '../islands/TitleCarousel.tsx';
+import RankingStrip from '../components/RankingStrip.astro';
+import GenreChips from '../components/GenreChips.astro';
+import EmptyState from '../components/EmptyState.astro';
+import { getHomeData } from '../lib/api';
+import { formatDuration, timeAgoFa, toFa, toFaDecimal } from '../lib/fa';
+import { routeFor } from '../lib/repository';
+
+const { hero, movies, series, animations, top10, fresh, collections, genres } = await getHomeData();
+
+const heroItems: HeroItem[] = hero.map((t) => ({
+  slug: t.slug,
+  titleFa: t.titleFa,
+  titleEn: t.titleEn,
+  description: t.description,
+  genres: t.genres,
+  metaLine: `${toFa(t.jalaliYear)} • ${t.type === 'series' && t.seasonsCount ? `${toFa(t.seasonsCount)} فصل` : formatDuration(t.runtimeMin)}`,
+  rating: toFaDecimal(t.imdb),
+  quality: t.quality,
+  dubbed: t.dubbed,
+  backdrop: t.backdrop,
+  detailHref: routeFor(t),
+  watchHref: `/watch/${t.slug}`,
+}));
+
+const popularGenres = genres.slice(0, 8);
+---
+
+<Base
+  title="تماشای فیلم، سریال و انیمیشن"
+  description="مووی‌تون: تماشای آنلاین فیلم، سریال و انیمیشن با دوبله و زیرنویس فارسی، به‌همراه برترین‌های IMDb و تازه‌ترین عناوین."
+  animatedBg
+  jsonLd={{
+    '@context': 'https://schema.org',
+    '@type': 'WebSite',
+    name: 'مووی‌تون',
+    inLanguage: 'fa',
+    potentialAction: { '@type': 'SearchAction', target: 'https://movietoon.example.ir/search?q={query}', 'query-input': 'required name=query' },
+  }}
+>
+  <div class="mx-auto max-w-7xl px-4 py-6 space-y-12">
+    {heroItems.length > 0 ? (
+      <div class="reveal" data-reveal>
+        <Hero items={heroItems} />
+      </div>
+    ) : (
+      <EmptyState
+        title="ویژه‌ای برای نمایش نیست"
+        message="به‌زودی عنوان‌های ویژه اینجا می‌آیند. فعلاً آرشیو را مرور کنید."
+        linkText="مشاهده همه فیلم‌ها"
+        linkHref="/movies"
+      />
+    )}
+
+    <div class="reveal" data-reveal>
+      <HomeSection eyebrow="تازه‌ها" title="فیلم‌های جدید" moreHref="/movies" label="فیلم‌های جدید" scrollable>
+        {movies.length > 0 ? (
+          <TitleCarousel id="c-movies" client:visible>
+            {movies.map((t) => (
+              <div class="min-w-[150px] w-[150px] md:min-w-[180px] md:w-[180px] snap-start"><TitleCard title={t} /></div>
+            ))}
+          </TitleCarousel>
+        ) : (
+          <EmptyState title="فیلمی پیدا نشد" linkText="مشاهده همه فیلم‌ها" linkHref="/movies" />
+        )}
+      </HomeSection>
+    </div>
+
+    <div class="reveal" data-reveal>
+      <HomeSection eyebrow="محبوب این هفته" title="سریال‌های پربیننده" moreHref="/series" label="سریال‌های پربیننده" scrollable>
+        {series.length > 0 ? (
+          <TitleCarousel id="c-series" client:visible>
+            {series.map((t) => (
+              <div class="min-w-[150px] w-[150px] md:min-w-[180px] md:w-[180px] snap-start"><TitleCard title={t} /></div>
+            ))}
+          </TitleCarousel>
+        ) : (
+          <EmptyState title="سریالی پیدا نشد" linkText="مشاهده همه سریال‌ها" linkHref="/series" />
+        )}
+      </HomeSection>
+    </div>
+
+    <div class="reveal" data-reveal>
+      <HomeSection eyebrow="دسته‌بندی" title="ژانرهای محبوب" moreHref="/genres" label="ژانرهای محبوب">
+        {popularGenres.length > 0 ? (
+          <GenreChips genres={popularGenres} />
+        ) : (
+          <EmptyState title="ژانری پیدا نشد" linkText="مشاهده ژانرها" linkHref="/genres" />
+        )}
+      </HomeSection>
+    </div>
+
+    <div class="reveal card p-5 md:p-7" data-reveal>
+      <HomeSection eyebrow="رقابت امروز" title="۱۰ عنوان برتر امروز" moreHref="/top" label="تاپ ۱۰ امروز" scrollable>
+        {top10.length > 0 ? (
+          <RankingStrip items={top10} />
+        ) : (
+          <EmptyState title="رتبه‌بندی خالی است" linkText="مشاهده برترین‌ها" linkHref="/top" />
+        )}
+      </HomeSection>
+    </div>
+
+    <div class="reveal" data-reveal>
+      <HomeSection eyebrow="دنیای کودک" title="انیمیشن‌های محبوب" moreHref="/animations" label="انیمیشن‌های محبوب" scrollable>
+        {animations.length > 0 ? (
+          <TitleCarousel id="c-anims" client:visible>
+            {animations.map((t) => (
+              <div class="min-w-[150px] w-[150px] md:min-w-[180px] md:w-[180px] snap-start"><TitleCard title={t} /></div>
+            ))}
+          </TitleCarousel>
+        ) : (
+          <EmptyState title="انیمیشنی پیدا نشد" linkText="مشاهده همه انیمیشن‌ها" linkHref="/animations" />
+        )}
+      </HomeSection>
+    </div>
+
+    <div class="reveal" data-reveal>
+      <HomeSection eyebrow="منتخب سردبیر" title="بخش‌های ویژه" moreHref="/collections" label="بخش‌های ویژه">
+        {collections.length > 0 ? (
+          <div class="grid gap-4 md:grid-cols-3">
+            {collections.map((c) => (
+              <a href={`/collections/${c.slug}`} class="card overflow-hidden group collection-card" aria-label={c.name}>
+                <div class="relative h-44 overflow-hidden">
+                  {c.cover ? (
+                    <img
+                      src={c.cover}
+                      alt=""
+                      aria-hidden="true"
+                      loading="lazy"
+                      decoding="async"
+                      width="640"
+                      height="360"
+                      class="collection-cover w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div class="collection-fallback" aria-hidden="true">
+                      <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true">
+                        <rect x="2" y="4" width="20" height="16" rx="3" />
+                        <path d="M2 9h20M7 4l2.5 5M13 4l2.5 5" stroke-linecap="round" />
+                        <polygon points="10 12.5 15 14.5 10 16.5" fill="currentColor" stroke="none" />
+                      </svg>
+                    </div>
+                  )}
+                  <div class="absolute inset-0 collection-shade" aria-hidden="true"></div>
+                  <div class="absolute bottom-3 inset-inline-4 flex items-end justify-between gap-2">
+                    <h3 class="text-white font-black text-lg">{c.name}</h3>
+                    <span class="collection-count">{toFa(c.titleSlugs.length)} عنوان</span>
+                  </div>
+                </div>
+                <p class="p-4 text-sm muted">{c.description}</p>
+              </a>
+            ))}
+          </div>
+        ) : (
+          <EmptyState title="مجموعه‌ای پیدا نشد" linkText="مشاهده مجموعه‌ها" linkHref="/collections" />
+        )}
+      </HomeSection>
+    </div>
+
+    <div class="reveal" data-reveal>
+      <HomeSection eyebrow="به‌روزرسانی" title="تازه به‌روز شده" moreHref="/new" label="تازه به‌روز شده">
+        {fresh.length > 0 ? (
+          <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
+            {fresh.slice(0, 10).map((t) => (
+              <div>
+                <TitleCard title={t} />
+                <p class="muted text-[11px] mt-1.5 px-0.5">{timeAgoFa(t.addedAt)}</p>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <EmptyState title="عنوان تازه‌ای نیست" linkText="مشاهده تازه‌ها" linkHref="/new" />
+        )}
+      </HomeSection>
+    </div>
+  </div>
+</Base>
+
+<style>
+  /* Entrance choreography: transform + opacity only, once per section.
+     Hidden state applies only when JS runs (`.js` gate) so no-JS keeps content visible. */
+  .js .reveal {
+    opacity: 0;
+    transform: translateY(20px);
+    transition:
+      opacity 0.65s ease,
+      transform 0.65s cubic-bezier(0.2, 0.7, 0.2, 1);
+  }
+  .js .reveal.in {
+    opacity: 1;
+    transform: none;
+  }
+  .collection-card {
+    transition: transform 0.28s ease, box-shadow 0.28s ease;
+  }
+  .collection-card:hover,
+  .collection-card:focus-within {
+    transform: translateY(-4px);
+    box-shadow: 0 20px 44px -18px var(--brand);
+  }
+  .collection-cover {
+    transition: transform 0.5s ease;
+  }
+  .collection-card:hover .collection-cover {
+    transform: scale(1.05);
+  }
+  .collection-fallback {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: rgba(255, 255, 255, 0.75);
+    background:
+      radial-gradient(120% 130% at 85% 10%, rgba(244, 63, 94, 0.55), transparent 55%),
+      radial-gradient(130% 140% at 10% 90%, rgba(139, 92, 246, 0.5), transparent 55%),
+      linear-gradient(135deg, #1b1030, #0e2a33);
+  }
+  .collection-shade {
+    background: linear-gradient(to top, rgba(0, 0, 0, 0.78), transparent 62%);
+  }
+  .collection-count {
+    flex-shrink: 0;
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: #fff;
+    background: rgba(255, 255, 255, 0.16);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    backdrop-filter: blur(8px);
+    border-radius: 999px;
+    padding: 0.2rem 0.7rem;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .js .reveal {
+      opacity: 1;
+      transform: none;
+      transition: none;
+    }
+    .collection-card,
+    .collection-cover {
+      transition: none;
+    }
+  }
+</style>
+
+<script>
+  document.documentElement.classList.add('js');
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (reduceMotion) {
+    document.querySelectorAll('[data-reveal]').forEach((el) => el.classList.add('in'));
+  } else if ('IntersectionObserver' in window) {
+    const io = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry, i) => {
+          if (entry.isIntersecting) {
+            const el = entry.target as HTMLElement;
+            el.style.transitionDelay = `${Math.min(i * 70, 280)}ms`;
+            el.classList.add('in');
+            io.unobserve(el);
+          }
+        });
+      },
+      { threshold: 0.12, rootMargin: '0px 0px -6% 0px' },
+    );
+    document.querySelectorAll('[data-reveal]').forEach((el) => io.observe(el));
+  } else {
+    document.querySelectorAll('[data-reveal]').forEach((el) => el.classList.add('in'));
+  }
+</script>

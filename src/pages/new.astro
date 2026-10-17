@@ -1,0 +1,31 @@
+---
+import Base from '../layouts/Base.astro';
+import Breadcrumbs from '../components/Breadcrumbs.astro';
+import TitleCard from '../components/TitleCard.astro';
+import { titles } from '../data';
+import { formatJalaliDate } from '../lib/fa';
+
+const sorted = [...titles].sort((a, b) => b.addedAt.localeCompare(a.addedAt));
+const groups = new Map<string, typeof sorted>();
+for (const t of sorted) {
+  const key = formatJalaliDate(t.addedAt);
+  if (!groups.has(key)) groups.set(key, []);
+  groups.get(key)!.push(t);
+}
+---
+<Base title="تازه‌ها" description="جدیدترین عناوین اضافه‌شده به مووی‌تون به تفکیک تاریخ">
+  <div class="mx-auto max-w-7xl px-4 py-6">
+    <Breadcrumbs crumbs={[{ label: 'تازه‌ها' }]} />
+    <h1 class="font-black text-2xl mb-5">تازه‌ها</h1>
+    {[...groups.entries()].slice(0, 12).map(([date, items]) => (
+      <section class="mb-8" aria-label={date}>
+        <h2 class="font-black mb-3 flex items-center gap-2">
+          <span class="inline-block w-1.5 h-5 rounded-full" style="background: var(--brand)"></span>{date}
+        </h2>
+        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
+          {items.slice(0, 6).map((t) => <TitleCard title={t} />)}
+        </div>
+      </section>
+    ))}
+  </div>
+</Base>

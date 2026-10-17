@@ -1,0 +1,17 @@
+---
+interface Props {
+  crumbs: { label: string; href?: string }[];
+}
+const { crumbs } = Astro.props;
+---
+<nav aria-label="مسیر صفحه" class="text-xs muted mb-4">
+  <ol class="flex flex-wrap items-center gap-1.5">
+    <li><a href="/" class="hover:underline">خانه</a></li>
+    {crumbs.map((c) => (
+      <li class="flex items-center gap-1.5">
+        <span aria-hidden="true">‹</span>
+        {c.href ? <a href={c.href} class="hover:underline">{c.label}</a> : <span aria-current="page" class="text-current">{c.label}</span>}
+      </li>
+    ))}
+  </ol>
+</nav>

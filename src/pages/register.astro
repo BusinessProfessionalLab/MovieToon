@@ -1,0 +1,48 @@
+---
+import Base from '../layouts/Base.astro';
+import Breadcrumbs from '../components/Breadcrumbs.astro';
+---
+<Base title="ثبت‌نام" description="ساخت حساب کاربری در مووی‌تون" noindex>
+  <div class="mx-auto max-w-md px-4 py-10">
+    <Breadcrumbs crumbs={[{ label: 'ثبت‌نام' }]} />
+    <div class="card p-6">
+      <h1 class="font-black text-xl">ساخت حساب کاربری</h1>
+      <p class="muted text-sm mt-1">نسخه نمایشی — ثبت‌نام واقعی انجام نمی‌شود.</p>
+      <form id="reg-form" class="grid gap-3 mt-5" novalidate>
+        <div>
+          <label for="name" class="text-sm font-bold block mb-1">نام و نام خانوادگی</label>
+          <input id="name" class="w-full rounded-xl border px-3 py-2.5 text-sm" style="background: var(--bg); border-color: var(--border)" placeholder="مثلا: علی رضایی" />
+        </div>
+        <div>
+          <label for="email" class="text-sm font-bold block mb-1">ایمیل</label>
+          <input id="email" class="w-full rounded-xl border px-3 py-2.5 text-sm" style="background: var(--bg); border-color: var(--border)" placeholder="example@mail.com" dir="ltr" />
+        </div>
+        <div>
+          <label for="password" class="text-sm font-bold block mb-1">گذرواژه</label>
+          <input id="password" type="password" class="w-full rounded-xl border px-3 py-2.5 text-sm" style="background: var(--bg); border-color: var(--border)" placeholder="حداقل ۶ حرف" />
+        </div>
+        <div>
+          <label for="password2" class="text-sm font-bold block mb-1">تکرار گذرواژه</label>
+          <input id="password2" type="password" class="w-full rounded-xl border px-3 py-2.5 text-sm" style="background: var(--bg); border-color: var(--border)" placeholder="تکرار گذرواژه" />
+        </div>
+        <p id="form-error" role="alert" class="hidden text-sm font-bold" style="color: var(--brand)"></p>
+        <button class="btn-primary text-sm w-full justify-center" type="submit">ثبت‌نام</button>
+      </form>
+      <p class="text-sm mt-4">حساب دارید؟ <a href="/login" class="font-bold" style="color: var(--brand)">وارد شوید</a></p>
+    </div>
+  </div>
+</Base>
+<script is:inline>
+  document.getElementById('reg-form')?.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const v = (id) => document.getElementById(id).value.trim();
+    const err = document.getElementById('form-error');
+    const show = (m) => { err.textContent = m; err.classList.remove('hidden'); };
+    if (v('name').length < 3) return show('نام باید حداقل ۳ حرف باشد.');
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(v('email'))) return show('نشانی ایمیل معتبر نیست.');
+    if (document.getElementById('password').value.length < 6) return show('گذرواژه باید حداقل ۶ حرف باشد.');
+    if (document.getElementById('password').value !== document.getElementById('password2').value) return show('تکرار گذرواژه مطابقت ندارد.');
+    err.classList.add('hidden');
+    window.movietoonToast?.('ثبت‌نام نمایشی با موفقیت انجام شد 🎉');
+  });
+</script>

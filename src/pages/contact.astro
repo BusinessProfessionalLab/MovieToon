@@ -1,0 +1,37 @@
+---
+import Base from '../layouts/Base.astro';
+import Breadcrumbs from '../components/Breadcrumbs.astro';
+---
+<Base title="تماس با ما" description="راه‌های ارتباط با تیم مووی‌تون">
+  <div class="mx-auto max-w-3xl px-4 py-8">
+    <Breadcrumbs crumbs={[{ label: 'تماس با ما' }]} />
+    <h1 class="font-black text-2xl mb-4">تماس با ما</h1>
+    <div class="card p-6">
+      <form id="contact-form" class="grid gap-3" novalidate>
+        <div class="grid sm:grid-cols-2 gap-3">
+          <div><label for="c-name" class="text-sm font-bold block mb-1">نام</label><input id="c-name" class="w-full rounded-xl border px-3 py-2.5 text-sm" style="background: var(--bg); border-color: var(--border)" placeholder="نام شما" /></div>
+          <div><label for="c-email" class="text-sm font-bold block mb-1">ایمیل</label><input id="c-email" class="w-full rounded-xl border px-3 py-2.5 text-sm" style="background: var(--bg); border-color: var(--border)" placeholder="example@mail.com" dir="ltr" /></div>
+        </div>
+        <div><label for="c-subject" class="text-sm font-bold block mb-1">موضوع</label><input id="c-subject" class="w-full rounded-xl border px-3 py-2.5 text-sm" style="background: var(--bg); border-color: var(--border)" placeholder="موضوع پیام" /></div>
+        <div><label for="c-text" class="text-sm font-bold block mb-1">متن پیام</label><textarea id="c-text" rows={5} class="w-full rounded-xl border px-3 py-2.5 text-sm" style="background: var(--bg); border-color: var(--border)" placeholder="پیام خود را بنویسید…"></textarea></div>
+        <p id="c-error" role="alert" class="hidden text-sm font-bold" style="color: var(--brand)"></p>
+        <button class="btn-primary text-sm w-fit" type="submit">ارسال پیام</button>
+      </form>
+      <p class="muted text-xs mt-4">این فرم نمایشی است و پیامی ارسال نمی‌شود.</p>
+    </div>
+  </div>
+</Base>
+<script is:inline>
+  document.getElementById('contact-form')?.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const v = (id) => document.getElementById(id).value.trim();
+    const err = document.getElementById('c-error');
+    const show = (m) => { err.textContent = m; err.classList.remove('hidden'); };
+    if (v('c-name').length < 2) return show('لطفا نام خود را وارد کنید.');
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(v('c-email'))) return show('نشانی ایمیل معتبر نیست.');
+    if (v('c-text').length < 10) return show('متن پیام باید حداقل ۱۰ حرف باشد.');
+    err.classList.add('hidden');
+    window.movietoonToast?.('پیام شما (نمایشی) ثبت شد 🙏');
+    e.target.reset();
+  });
+</script>

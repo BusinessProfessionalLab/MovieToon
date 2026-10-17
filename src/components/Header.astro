@@ -1,0 +1,65 @@
+---
+import { NAV } from '../lib/site';
+---
+<header class="sticky top-0 z-40 border-b" style="background: var(--bg); border-color: var(--border)">
+  <div class="mx-auto max-w-7xl px-4 flex items-center gap-3 h-16">
+    <button
+      id="menu-btn"
+      class="md:hidden p-2 rounded-lg border"
+      style="border-color: var(--border)"
+      aria-label="باز کردن منو"
+      aria-expanded="false"
+    >
+      ☰
+    </button>
+    <a href="/" class="flex items-center gap-2 font-black text-xl" aria-label="مووی‌تون - صفحه اصلی">
+      <span class="inline-flex w-9 h-9 items-center justify-center rounded-xl text-white font-black" style="background: var(--brand)">م</span>
+      <span>مووی‌تون</span>
+    </a>
+    <nav class="hidden md:flex items-center gap-5 text-sm font-medium" aria-label="ناوبری اصلی">
+      {NAV.map((n) => <a class="hover:opacity-80" href={n.href}>{n.label}</a>)}
+    </nav>
+    <div class="ms-auto flex items-center gap-2">
+      <a href="/search" class="p-2 rounded-lg border" style="border-color: var(--border)" aria-label="جستجو">🔍</a>
+      <button id="theme-btn" class="p-2 rounded-lg border" style="border-color: var(--border)" aria-label="تغییر تم">🌙</button>
+      <a href="/login" class="hidden sm:inline-flex btn-ghost text-sm">ورود</a>
+      <a href="/register" class="hidden sm:inline-flex btn-primary text-sm">ثبت‌نام</a>
+      <a href="/profile" class="p-2 rounded-lg border sm:hidden" style="border-color: var(--border)" aria-label="حساب کاربری">👤</a>
+    </div>
+  </div>
+  <div id="mobile-drawer" class="md:hidden hidden border-t px-4 py-3" style="border-color: var(--border)">
+    <nav class="flex flex-col gap-1" aria-label="منوی موبایل">
+      {NAV.map((n) => <a class="py-2 border-b last:border-0" style="border-color: var(--border)" href={n.href}>{n.label}</a>)}
+      <div class="flex gap-2 pt-3">
+        <a href="/login" class="btn-ghost text-sm flex-1 text-center">ورود</a>
+        <a href="/register" class="btn-primary text-sm flex-1 text-center">ثبت‌نام</a>
+      </div>
+    </nav>
+  </div>
+  <div class="md:hidden border-t" style="border-color: var(--border)">
+    <nav class="mx-auto max-w-7xl px-2 flex gap-1 overflow-x-auto no-scrollbar text-xs py-2" aria-label="ناوبری موبایل">
+      <a href="/" class="px-3 py-2 rounded-lg whitespace-nowrap">خانه</a>
+      {NAV.slice(0, 5).map((n) => <a href={n.href} class="px-3 py-2 rounded-lg whitespace-nowrap">{n.label}</a>)}
+    </nav>
+  </div>
+</header>
+<script is:inline>
+  const btn = document.getElementById('menu-btn');
+  const drawer = document.getElementById('mobile-drawer');
+  btn?.addEventListener('click', () => {
+    const open = drawer?.classList.toggle('hidden');
+    btn.setAttribute('aria-expanded', String(!open));
+  });
+  const themeBtn = document.getElementById('theme-btn');
+  const syncIcon = () => {
+    const t = document.documentElement.getAttribute('data-theme');
+    if (themeBtn) themeBtn.textContent = t === 'dark' ? '🌙' : '☀️';
+  };
+  syncIcon();
+  themeBtn?.addEventListener('click', () => {
+    const cur = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-theme', cur);
+    try { localStorage.setItem('movietoon-theme', cur); } catch {}
+    syncIcon();
+  });
+</script>

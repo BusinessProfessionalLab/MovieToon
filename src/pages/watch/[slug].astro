@@ -1,0 +1,79 @@
+---
+import Base from '../../layouts/Base.astro';
+import Breadcrumbs from '../../components/Breadcrumbs.astro';
+import TitleCard from '../../components/TitleCard.astro';
+import WatchPlayer from '../../islands/WatchPlayer.tsx';
+import { titles } from '../../data';
+import { similarTitles, routeFor } from '../../lib/repository';
+import { toFa } from '../../lib/fa';
+
+export function getStaticPaths() {
+  return titles.map((t) => ({ params: { slug: t.slug } }));
+}
+
+const { slug } = Astro.params;
+const title = titles.find((t) => t.slug === slug);
+if (!title) return Astro.redirect('/404');
+const related = similarTitles(titles, title, 6);
+// Episode nav (query handled client-side note; SSR default first episode)
+const s = Number(Astro.url.searchParams.get('s') ?? 1);
+const e = Number(Astro.url.searchParams.get('e') ?? 1);
+const season = title.seasons?.find((x) => x.number === s) ?? title.seasons?.[0];
+const episode = season?.episodes.find((x) => x.number === e) ?? season?.episodes[0];
+const prevEp = season && episode && episode.number > 1 ? episode.number - 1 : null;
+const nextEp = season && episode && episode.number < season.episodes.length ? episode.number + 1 : null;
+---
+<Base title={`تماشای ${title.titleFa}`} description={`تماشای آنلاین ${title.titleFa} با کیفیت‌های مختلف و زیرنویس فارسی`} noindex>
+  <div class="mx-auto max-w-7xl px-4 py-6 grid lg:grid-cols-[1fr_300px] gap-6">
+    <div>
+      <Breadcrumbs crumbs={[{ label: 'تماشا', href: '#' }, { label: title.titleFa }]} />
+      <h1 class="font-black text-xl mb-1">تماشای {title.titleFa}</h1>
+      {episode && season && (
+        <p class="muted text-sm mb-4">فصل {toFa(season.number)} • قسمت {toFa(episode.number)}: {episode.title}</p>
+      )}
+      <WatchPlayer slug={title.slug} title={title.titleFa} poster={title.backdrop} client:load />
+      {season && episode && (
+        <div class="flex items-center justify-between mt-4">
+          {nextEp ? (
+            <a href={`/watch/${title.slug}?s=${season.number}&e=${nextEp}`} class="btn-ghost text-sm">قسمت بعدی ←</a>
+          ) : <span />}
+          <span class="muted text-xs">قسمت {toFa(episode.number)} از {toFa(season.episodes.length)}</span>
+          {prevEp ? (
+            <a href={`/watch/${title.slug}?s=${season.number}&e=${prevEp}`} class="btn-ghost text-sm">→ قسمت قبلی</a>
+          ) : <span />}
+        </div>
+      )}
+      {title.seasons && (
+        <div class="card p-4 mt-4" aria-label="فهرست قسمت‌ها">
+          <h2 class="font-black text-sm mb-3">فهرست قسمت‌ها</h2>
+          {title.seasons.map((sn) => (
+            <details class="border-t py-2" style="border-color: var(--border)" open={sn.number === (season?.number ?? 1)}>
+              <summary class="font-bold text-sm cursor-pointer">فصل {toFa(sn.number)} ({toFa(sn.episodes.length)} قسمت)</summary>
+              <ol class="grid gap-1.5 mt-2">
+                {sn.episodes.map((ep) => (
+                  <li>
+                    <a
+                      href={`/watch/${title.slug}?s=${sn.number}&e=${ep.number}`}
+                      class:list={['text-sm block px-3 py-2 rounded-lg', ep.number === episode?.number && sn.number === season?.number ? 'font-black' : '']}
+                      style={ep.number === episode?.number && sn.number === season?.number ? 'background: var(--bg-soft)' : ''}
+                      aria-current={ep.number === episode?.number && sn.number === season?.number ? 'true' : undefined}
+                    >
+                      قسمت {toFa(ep.number)} — {toFa(ep.durationMin)} دقیقه
+                    </a>
+                  </li>
+                ))}
+              </ol>
+            </details>
+          ))}
+        </div>
+      )}
+    </div>
+    <aside aria-label="عناوین مرتبط">
+      <h2 class="font-black mb-3">مرتبط‌ها</h2>
+      <div class="grid grid-cols-2 lg:grid-cols-1 gap-3">
+        {related.map((t) => <TitleCard title={t} />)}
+      </div>
+      <a href={routeFor(title)} class="btn-ghost text-sm w-full text-center mt-4">→ بازگشت به جزئیات</a>
+    </aside>
+  </div>
+</Base>

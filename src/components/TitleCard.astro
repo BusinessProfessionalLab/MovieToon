@@ -1,0 +1,99 @@
+---
+import type { Title } from '../types';
+import { toFa, toFaDecimal } from '../lib/fa';
+import { routeFor } from '../lib/repository';
+
+interface Props {
+  title: Title;
+}
+const { title: t } = Astro.props;
+const href = routeFor(t);
+---
+<article class="title-card card overflow-hidden group">
+  <a href={href} class="block" aria-label={`مشاهده ${t.titleFa}`}>
+    <div class="relative aspect-[2/3] overflow-hidden bg-[var(--bg-soft)]">
+      <img
+        src={t.poster}
+        alt={`پوستر ${t.titleFa}`}
+        loading="lazy"
+        decoding="async"
+        width="300"
+        height="450"
+        class="title-poster w-full h-full object-cover"
+      />
+      <span class="absolute top-2 start-2 inline-flex items-center gap-1 text-[11px] font-bold px-2 py-1 rounded-lg text-white" style="background: rgba(0,0,0,.65)">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="var(--gold)" aria-hidden="true">
+          <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+        </svg>
+        {toFaDecimal(t.imdb)}
+      </span>
+      <span class="absolute top-2 end-2 text-[11px] font-bold px-2 py-1 rounded-lg text-white" style="background: var(--brand)">
+        {t.quality}
+      </span>
+      {t.dubbed && (
+        <span class="absolute bottom-2 start-2 text-[11px] px-2 py-1 rounded-lg text-white" style="background: rgba(0,0,0,.65)">دوبله فارسی</span>
+      )}
+      {t.type === 'series' && t.seasonsCount && (
+        <span class="absolute bottom-2 end-2 text-[11px] px-2 py-1 rounded-lg text-white" style="background: rgba(0,0,0,.65)">
+          {toFa(t.seasonsCount)} فصل
+        </span>
+      )}
+      <span class="title-play" aria-hidden="true">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+          <polygon points="6 3 20 12 6 21 6 3" />
+        </svg>
+      </span>
+    </div>
+    <div class="p-3">
+      <h3 class="font-bold text-sm truncate">{t.titleFa}</h3>
+      <p class="muted text-xs mt-1">{toFa(t.jalaliYear)} • {t.genres.slice(0, 2).join('، ')}</p>
+    </div>
+  </a>
+</article>
+
+<style>
+  .title-card {
+    transition: transform 0.28s ease, box-shadow 0.28s ease;
+  }
+  .title-card:hover,
+  .title-card:focus-within {
+    transform: translateY(-5px);
+    box-shadow: 0 18px 38px -16px var(--brand);
+  }
+  .title-poster {
+    transition: transform 0.35s ease;
+  }
+  .title-card:hover .title-poster,
+  .title-card:focus-within .title-poster {
+    transform: scale(1.06);
+  }
+  .title-play {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    background: linear-gradient(to top, rgba(0, 0, 0, 0.45), transparent 55%);
+    opacity: 0;
+    transition: opacity 0.25s ease;
+  }
+  .title-card:hover .title-play,
+  .title-card:focus-within .title-play {
+    opacity: 1;
+  }
+  .title-play svg {
+    filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.6));
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .title-card,
+    .title-poster,
+    .title-play {
+      transition: none;
+    }
+    .title-card:hover,
+    .title-card:focus-within {
+      transform: none;
+    }
+  }
+</style>

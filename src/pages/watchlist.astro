@@ -1,0 +1,34 @@
+---
+import Base from '../layouts/Base.astro';
+import Breadcrumbs from '../components/Breadcrumbs.astro';
+---
+<Base title="تماشای بعدی" description="فهرست تماشای بعدی شما (ذخیره‌شده در همین دستگاه)" noindex>
+  <div class="mx-auto max-w-7xl px-4 py-6">
+    <Breadcrumbs crumbs={[{ label: 'تماشای بعدی' }]} />
+    <h1 class="font-black text-2xl mb-1">تماشای بعدی</h1>
+    <p class="muted text-sm mb-5">این فهرست در حافظه محلی مرورگر شما ذخیره می‌شود.</p>
+    <div id="w-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3"></div>
+    <p id="w-empty" class="card p-8 text-center muted text-sm hidden">فهرست خالی است. <a href="/series" class="font-bold" style="color: var(--brand)">مشاهده سریال‌ها ←</a></p>
+  </div>
+</Base>
+<script is:inline>
+  async function render() {
+    const grid = document.getElementById('w-grid');
+    const empty = document.getElementById('w-empty');
+    let slugs = [];
+    try { slugs = JSON.parse(localStorage.getItem('movietoon-watchlist') || '[]'); } catch {}
+    const res = await fetch('/api-titles.json').catch(() => null);
+    const all = res ? await res.json() : [];
+    const items = all.filter((t) => slugs.includes(t.slug));
+    grid.innerHTML = '';
+    empty.classList.toggle('hidden', items.length > 0);
+    for (const t of items) {
+      const a = document.createElement('a');
+      a.href = t.href;
+      a.className = 'card overflow-hidden group';
+      a.innerHTML = `<img src="${t.poster}" alt="پوستر ${t.titleFa}" loading="lazy" class="w-full aspect-[2/3] object-cover"><div class="p-3"><p class="font-bold text-sm truncate">${t.titleFa}</p></div>`;
+      grid.appendChild(a);
+    }
+  }
+  render();
+</script>

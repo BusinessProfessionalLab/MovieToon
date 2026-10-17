@@ -1,0 +1,29 @@
+---
+import { toFa } from '../lib/fa';
+interface Props {
+  page: number;
+  totalPages: number;
+  base: string;
+}
+const { page, totalPages, base } = Astro.props;
+const link = (p: number) => `${base}${base.includes('?') ? '&' : '?'}page=${p}`;
+const nums: number[] = [];
+for (let i = Math.max(1, page - 2); i <= Math.min(totalPages, page + 2); i++) nums.push(i);
+---
+{totalPages > 1 && (
+  <nav class="flex items-center justify-center gap-2 mt-8" aria-label="صفحه‌بندی">
+    {page > 1 && <a class="btn-ghost text-sm" href={link(page - 1)} aria-label="صفحه قبلی">→ قبلی</a>}
+    {nums.map((n) => (
+      <a
+        href={link(n)}
+        aria-current={n === page ? 'page' : undefined}
+        aria-label={`صفحه ${n}`}
+        class="w-10 h-10 inline-flex items-center justify-center rounded-xl border text-sm font-bold"
+        style={n === page ? 'background: var(--brand); color: #fff; border-color: transparent' : 'border-color: var(--border)'}
+      >
+        {toFa(n)}
+      </a>
+    ))}
+    {page < totalPages && <a class="btn-ghost text-sm" href={link(page + 1)} aria-label="صفحه بعدی">بعدی ←</a>}
+  </nav>
+)}

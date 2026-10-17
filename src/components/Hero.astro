@@ -1,0 +1,468 @@
+---
+export interface HeroItem {
+  slug: string;
+  titleFa: string;
+  titleEn: string;
+  description: string;
+  genres: string[];
+  metaLine: string;
+  rating: string;
+  quality: string;
+  dubbed: boolean;
+  backdrop: string;
+  detailHref: string;
+  watchHref: string;
+}
+
+interface Props {
+  items: HeroItem[];
+}
+
+const { items } = Astro.props;
+const first = items[0];
+---
+{first && (
+  <section class="hero" data-hero aria-label="پیشنهاد ویژه">
+    <div class="hero-media" aria-hidden="false">
+      {items.map((it, i) => (
+        <div class={`hero-slide${i === 0 ? ' is-active' : ''}`} data-slide={i} aria-hidden={i === 0 ? 'false' : 'true'}>
+          <img
+            src={it.backdrop}
+            alt=""
+            loading={i === 0 ? 'eager' : 'lazy'}
+            decoding="async"
+            fetchpriority={i === 0 ? 'high' : undefined}
+            width="1280"
+            height="720"
+            class="hero-img"
+          />
+        </div>
+      ))}
+      <div class="hero-shade" aria-hidden="true"></div>
+    </div>
+
+    <div class="hero-content">
+      <p class="hero-eyebrow">
+        <span class="hero-live-dot" aria-hidden="true"></span>
+        پیشنهاد ویژه مووی‌تون
+      </p>
+      {items.map((it, i) => (
+        <div class={`hero-copy${i === 0 ? ' is-active' : ''}`} data-copy={i} aria-hidden={i === 0 ? 'false' : 'true'}>
+          <h1 class="hero-title">{it.titleFa}</h1>
+          <p class="hero-en" dir="ltr">{it.titleEn}</p>
+          <ul class="hero-chips" aria-label="مشخصات">
+            <li class="chip chip-rating">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="var(--gold)" aria-hidden="true">
+                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+              </svg>
+              {it.rating}
+            </li>
+            <li class="chip">{it.metaLine}</li>
+            <li class="chip">{it.genres.slice(0, 3).join(' • ')}</li>
+            <li class="chip chip-quality">{it.quality}</li>
+            {it.dubbed && <li class="chip chip-dubbed">دوبله فارسی</li>}
+          </ul>
+          <p class="hero-desc">{it.description}</p>
+          <div class="hero-actions">
+            <a href={it.watchHref} class="btn-primary hero-btn">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                <polygon points="6 3 20 12 6 21 6 3" />
+              </svg>
+              تماشا
+            </a>
+            <a href={it.detailHref} class="btn-ghost hero-btn hero-btn-ghost">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <circle cx="12" cy="12" r="10" />
+                <path d="M12 16v-4m0-4h.01" stroke-linecap="round" />
+              </svg>
+              جزئیات
+            </a>
+            <button
+              type="button"
+              class="hero-later"
+              data-watchlater={it.slug}
+              data-title={it.titleFa}
+              aria-pressed="false"
+              aria-label={`افزودن ${it.titleFa} به تماشای بعدی`}
+            >
+              <svg class="icon-plus" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true">
+                <path d="M12 5v14M5 12h14" stroke-linecap="round" />
+              </svg>
+              <svg class="icon-check" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true">
+                <path d="M20 6 9 17l-5-5" stroke-linecap="round" stroke-linejoin="round" />
+              </svg>
+              <span class="hero-later-text">تماشای بعدی</span>
+            </button>
+          </div>
+        </div>
+      ))}
+
+      {items.length > 1 && (
+        <div class="hero-dots" role="tablist" aria-label="انتخاب عنوان ویژه">
+          {items.map((it, i) => (
+            <button
+              type="button"
+              role="tab"
+              aria-selected={i === 0 ? 'true' : 'false'}
+              aria-label={`نمایش ${it.titleFa}`}
+              class={`hero-dot${i === 0 ? ' is-active' : ''}`}
+              data-dot={i}
+            >
+              <span class="hero-dot-fill" aria-hidden="true"></span>
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  </section>
+)}
+
+<style>
+  .hero {
+    position: relative;
+    overflow: hidden;
+    border-radius: 1.4rem;
+    border: 1px solid var(--border);
+    background: var(--card);
+    min-height: 620px;
+  }
+  @media (min-width: 768px) {
+    .hero {
+      min-height: 85vh;
+    }
+  }
+  /* Backdrop stack (desktop: full-bleed behind content). */
+  .hero-media {
+    position: relative;
+    height: 36vh;
+    min-height: 250px;
+  }
+  @media (min-width: 768px) {
+    .hero-media {
+      position: absolute;
+      inset: 0;
+      height: auto;
+      min-height: 0;
+    }
+  }
+  .hero-slide {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    transition: opacity 0.8s ease;
+  }
+  .hero-slide.is-active {
+    opacity: 1;
+    z-index: 1;
+  }
+  .hero-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  /* Slow Ken Burns drift on the visible backdrop (transform only). */
+  .hero-slide.is-active .hero-img {
+    animation: kenburns 20s ease-in-out infinite alternate;
+  }
+  @keyframes kenburns {
+    from { transform: scale(1) translate(0, 0); }
+    to { transform: scale(1.12) translate(-2%, 1.5%); }
+  }
+  /* Cinematic shade: heavy on the RTL (right) side where the text sits. */
+  .hero-shade {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    background:
+      linear-gradient(to top, var(--card) 2%, transparent 46%),
+      linear-gradient(to left, rgba(8, 8, 16, 0.94) 0%, rgba(8, 8, 16, 0.55) 46%, transparent 78%);
+  }
+  @media (min-width: 768px) {
+    .hero-shade {
+      background:
+        linear-gradient(to top, rgba(8, 8, 16, 0.92) 4%, transparent 52%),
+        linear-gradient(to left, rgba(8, 8, 16, 0.94) 0%, rgba(8, 8, 16, 0.6) 44%, transparent 76%);
+    }
+  }
+  .hero-content {
+    position: relative;
+    z-index: 3;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    gap: 0.55rem;
+    padding: 1.25rem 1.25rem 1.5rem;
+    color: #fff;
+  }
+  @media (min-width: 768px) {
+    .hero-content {
+      position: absolute;
+      inset-inline-end: 0;
+      inset-block: 0;
+      width: min(560px, 52%);
+      justify-content: center;
+      padding: 3rem;
+    }
+  }
+  .hero-eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #ffd9de;
+  }
+  .hero-live-dot {
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: 50%;
+    background: var(--brand);
+    box-shadow: 0 0 12px var(--brand);
+  }
+  .hero-copy {
+    display: none;
+    flex-direction: column;
+    gap: 0.55rem;
+  }
+  .hero-copy.is-active {
+    display: flex;
+    animation: copy-in 0.55s ease both;
+  }
+  @keyframes copy-in {
+    from { opacity: 0; transform: translateY(14px); }
+    to { opacity: 1; transform: none; }
+  }
+  .hero-title {
+    font-size: clamp(1.9rem, 4.5vw, 3.4rem);
+    font-weight: 900;
+    line-height: 1.25;
+    text-wrap: balance;
+  }
+  .hero-en {
+    font-size: 0.8rem;
+    opacity: 0.65;
+    text-align: end;
+    letter-spacing: 0.04em;
+  }
+  .hero-chips {
+    list-style: none;
+    margin: 0.35rem 0 0;
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.45rem;
+  }
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 0.32rem 0.8rem;
+    border-radius: 999px;
+    color: #fff;
+    background: rgba(255, 255, 255, 0.12);
+    border: 1px solid rgba(255, 255, 255, 0.22);
+    backdrop-filter: blur(8px);
+  }
+  .chip-rating {
+    color: #ffd98a;
+  }
+  .chip-quality {
+    background: var(--brand);
+    border-color: transparent;
+  }
+  .chip-dubbed {
+    background: rgba(20, 184, 166, 0.25);
+    border-color: rgba(20, 184, 166, 0.6);
+  }
+  .hero-desc {
+    font-size: 0.9rem;
+    line-height: 2;
+    opacity: 0.88;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    max-width: 46ch;
+  }
+  .hero-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.6rem;
+    margin-top: 0.4rem;
+  }
+  .hero-btn {
+    font-size: 0.9rem;
+  }
+  .hero-btn-ghost {
+    color: #fff;
+    border-color: rgba(255, 255, 255, 0.45);
+  }
+  .hero-later {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: #fff;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    border-radius: 999px;
+    padding: 0.6rem 1rem;
+    cursor: pointer;
+    backdrop-filter: blur(8px);
+    transition: transform 0.2s ease, background-color 0.2s ease;
+  }
+  .hero-later:hover {
+    transform: translateY(-1px);
+    background: rgba(255, 255, 255, 0.18);
+  }
+  .hero-later .icon-check {
+    display: none;
+  }
+  .hero-later[aria-pressed='true'] .icon-check {
+    display: block;
+  }
+  .hero-later[aria-pressed='true'] .icon-plus {
+    display: none;
+  }
+  .hero-dots {
+    display: flex;
+    gap: 0.45rem;
+    margin-top: 0.9rem;
+  }
+  .hero-dot {
+    position: relative;
+    width: 2.1rem;
+    height: 0.4rem;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.28);
+    overflow: hidden;
+    cursor: pointer;
+    padding: 0;
+    border: 0;
+  }
+  .hero-dot-fill {
+    position: absolute;
+    inset: 0;
+    width: 0;
+    background: var(--brand);
+    border-radius: inherit;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .hero-slide,
+    .hero-copy.is-active {
+      animation: none;
+      transition: none;
+    }
+    .hero-slide.is-active .hero-img {
+      animation: none;
+    }
+    .hero-dot.is-active .hero-dot-fill {
+      animation: none;
+      width: 100%;
+    }
+  }
+</style>
+
+<script>
+  import { inList, toggleInList, WATCH_KEY } from '../lib/store.ts';
+
+  const root = document.querySelector('[data-hero]') as HTMLElement | null;
+  if (root) {
+    const slides = Array.from(root.querySelectorAll<HTMLElement>('[data-slide]'));
+    const copies = Array.from(root.querySelectorAll<HTMLElement>('[data-copy]'));
+    const dots = Array.from(root.querySelectorAll<HTMLButtonElement>('[data-dot]'));
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const DURATION = 8000;
+    let idx = 0;
+    let timer: number | null = null;
+
+    const fills = () =>
+      Array.from(root.querySelectorAll('.hero-dot-fill')).flatMap((f) => Array.from(f.getAnimations()));
+
+    const show = (i: number) => {
+      idx = (i + slides.length) % slides.length;
+      slides.forEach((s, k) => {
+        const on = k === idx;
+        s.classList.toggle('is-active', on);
+        s.setAttribute('aria-hidden', String(!on));
+      });
+      copies.forEach((c, k) => {
+        const on = k === idx;
+        c.classList.toggle('is-active', on);
+        c.setAttribute('aria-hidden', String(!on));
+      });
+      dots.forEach((d, k) => {
+        const on = k === idx;
+        d.classList.toggle('is-active', on);
+        d.setAttribute('aria-selected', String(on));
+      });
+      // Progress fill always tracks the visible slide (Web Animations API).
+      fills().forEach((a) => a.cancel());
+      const activeFill = dots[idx]?.querySelector('.hero-dot-fill');
+      if (activeFill && !reduceMotion) {
+        activeFill.animate([{ width: '0' }, { width: '100%' }], { duration: DURATION, easing: 'linear', fill: 'forwards' });
+      }
+    };
+
+    const stop = () => {
+      if (timer !== null) {
+        window.clearInterval(timer);
+        timer = null;
+      }
+      fills().forEach((a) => {
+        try {
+          (a as Animation).pause();
+        } catch {}
+      });
+    };
+    const start = () => {
+      if (reduceMotion || slides.length < 2) return;
+      stop();
+      fills().forEach((a) => {
+        try {
+          (a as Animation).play();
+        } catch {}
+      });
+      timer = window.setInterval(() => show(idx + 1), DURATION);
+    };
+
+    dots.forEach((d, k) => {
+      d.addEventListener('click', () => {
+        show(k);
+        start();
+      });
+    });
+    root.addEventListener('mouseenter', stop);
+    root.addEventListener('mouseleave', start);
+    root.addEventListener('focusin', stop);
+    root.addEventListener('focusout', start);
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) stop();
+      else start();
+    });
+
+    // "Watch later" toggle wired to the existing watchlist store + toast.
+    root.querySelectorAll<HTMLButtonElement>('[data-watchlater]').forEach((btn) => {
+      const slug = btn.getAttribute('data-watchlater') ?? '';
+      const title = btn.getAttribute('data-title') ?? '';
+      const sync = () => {
+        const on = inList(WATCH_KEY, slug);
+        btn.setAttribute('aria-pressed', String(on));
+        btn.setAttribute('aria-label', on ? `حذف ${title} از تماشای بعدی` : `افزودن ${title} به تماشای بعدی`);
+      };
+      sync();
+      btn.addEventListener('click', () => {
+        toggleInList(WATCH_KEY, slug);
+        sync();
+        window.movietoonToast?.(btn.getAttribute('aria-pressed') === 'true' ? 'به تماشای بعدی اضافه شد.' : 'از تماشای بعدی حذف شد.');
+      });
+    });
+
+    show(idx);
+    start();
+  }
+</script>

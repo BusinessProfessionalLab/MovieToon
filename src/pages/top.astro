@@ -1,0 +1,32 @@
+---
+import Base from '../layouts/Base.astro';
+import Breadcrumbs from '../components/Breadcrumbs.astro';
+import TitleCard from '../components/TitleCard.astro';
+import { titles } from '../data';
+import { routeFor } from '../lib/repository';
+import { toFa, toFaDecimal } from '../lib/fa';
+
+const top = [...titles].sort((a, b) => b.imdb - a.imdb).slice(0, 20);
+---
+<Base title="برترین‌ها" description="برترین عناوین مووی‌تون بر اساس امتیاز IMDb">
+  <div class="mx-auto max-w-7xl px-4 py-6">
+    <Breadcrumbs crumbs={[{ label: 'برترین‌ها' }]} />
+    <h1 class="font-black text-2xl mb-1">برترین‌ها</h1>
+    <p class="muted text-sm mb-5">مرتب‌شده بر اساس امتیاز IMDb</p>
+    <ol class="grid gap-3">
+      {top.map((t, i) => (
+        <li>
+          <a href={routeFor(t)} class="card p-3 flex items-center gap-4 hover:shadow-lg">
+            <span class="font-black text-3xl w-12 text-center shrink-0" style="color: var(--brand)">{toFa(i + 1)}</span>
+            <img src={t.poster} alt={`پوستر ${t.titleFa}`} loading="lazy" width="60" height="90" class="rounded-lg object-cover w-14" />
+            <span class="flex-1">
+              <span class="font-black block">{t.titleFa}</span>
+              <span class="muted text-xs">{t.titleEn} • {toFa(t.jalaliYear)} • {t.genres.join('، ')}</span>
+            </span>
+            <span class="text-sm font-bold whitespace-nowrap">⭐ {toFaDecimal(t.imdb)}</span>
+          </a>
+        </li>
+      ))}
+    </ol>
+  </div>
+</Base>

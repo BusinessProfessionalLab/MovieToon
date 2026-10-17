@@ -1,0 +1,44 @@
+---
+import type { Genre } from '../types';
+
+interface Props {
+  genres: Genre[];
+}
+
+const { genres } = Astro.props;
+---
+<div class="genre-chips" role="list" aria-label="ژانرهای محبوب">
+  {genres.map((g) => (
+    <a role="listitem" href={`/genres/${g.slug}`} class="genre-chip" title={g.description}>
+      {g.name}
+    </a>
+  ))}
+</div>
+
+<style>
+  .genre-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.55rem;
+  }
+  .genre-chip {
+    font-size: 0.82rem;
+    font-weight: 700;
+    padding: 0.45rem 1.05rem;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    background: color-mix(in srgb, var(--card) 82%, transparent);
+    backdrop-filter: blur(8px);
+    transition: transform 0.25s ease, border-color 0.25s ease, color 0.25s ease, box-shadow 0.25s ease;
+  }
+  .genre-chip:hover {
+    transform: translateY(-2px);
+    border-color: var(--brand);
+    color: var(--brand);
+    box-shadow: 0 8px 22px -10px var(--brand);
+  }
+  .genre-chip:focus-visible {
+    outline: 2px solid var(--brand);
+    outline-offset: 2px;
+  }
+</style>

@@ -1,0 +1,152 @@
+/* Tailwind v3 directives. REQUIRED: without these, the @astrojs/tailwind
+   integration has no entry point, so no utilities (and no preflight reset)
+   are generated and the site renders as unstyled HTML. */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: light; /* keeps native controls (select dropdowns) readable */
+  --bg: #ffffff;
+  --bg-soft: #f4f5f7;
+  --card: #ffffff;
+  --text: #16181d;
+  --muted: #5b6472;
+  --border: #e5e7eb;
+  --brand: #e11d48;
+  --brand-strong: #be123c;
+  --gold: #f5a623;
+  --radius: 0.9rem;
+}
+[data-theme='dark'] {
+  color-scheme: dark;
+  --bg: #0f1115;
+  --bg-soft: #14171e;
+  --card: #171b24;
+  --text: #f2f4f8;
+  --muted: #9aa3b2;
+  --border: #242b38;
+  --brand: #f43f5e;
+  --brand-strong: #e11d48;
+}
+html {
+  scroll-behavior: smooth;
+}
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Vazirmatn', Tahoma, system-ui, sans-serif;
+}
+.card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+.muted {
+  color: var(--muted);
+}
+.btn-primary {
+  background: var(--brand);
+  color: #fff;
+  border-radius: 0.75rem;
+  padding: 0.65rem 1.4rem;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.btn-primary:hover {
+  background: var(--brand-strong);
+}
+.btn-ghost {
+  border: 1px solid var(--border);
+  border-radius: 0.75rem;
+  padding: 0.65rem 1.4rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  scrollbar-width: none;
+}
+.skeleton {
+  position: relative;
+  overflow: hidden;
+  background: var(--bg-soft);
+}
+.skeleton::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.25), transparent);
+  animation: shimmer 1.4s infinite;
+}
+@keyframes shimmer {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(-100%);
+  }
+}
+:focus-visible {
+  outline: 2px solid var(--brand);
+  outline-offset: 2px;
+}
+
+/* ---- Base design system (Step 2): kills default browser styling ---- */
+@layer base {
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+  }
+  body {
+    line-height: 1.9;
+    overflow-x: clip; /* no horizontal scroll on mobile */
+  }
+  /* Links: no default blue/underline; inherit theme text color. */
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
+  a:hover {
+    opacity: 0.85;
+  }
+  /* Nav / breadcrumb / footer lists are horizontal UI, not documents. */
+  nav ol,
+  nav ul,
+  [aria-label='مسیر صفحه'] ol {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  /* Form controls: one height, readable in both themes. */
+  input,
+  select,
+  textarea {
+    font-family: inherit;
+    font-size: 0.875rem;
+    color: var(--text);
+    background: var(--card);
+    max-width: 100%;
+  }
+  select option {
+    background: var(--card);
+    color: var(--text);
+  }
+  img {
+    max-width: 100%;
+  }
+}
+
+/* Centered page container: max 1280px with horizontal padding. */
+.container-x {
+  width: 100%;
+  max-width: 1280px;
+  margin-inline: auto;
+  padding-inline: 1rem;
+}

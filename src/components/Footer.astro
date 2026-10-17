@@ -1,0 +1,67 @@
+---
+import { toFa } from '../lib/fa';
+const year = new Date().getFullYear() - 621;
+---
+<footer class="mt-16 border-t" style="border-color: var(--border); background: var(--bg-soft)">
+  <div class="mx-auto max-w-7xl px-4 py-10 grid gap-8 md:grid-cols-4">
+    <div>
+      <div class="flex items-center gap-2 font-black text-lg">
+        <span class="inline-flex w-9 h-9 items-center justify-center rounded-xl text-white" style="background: var(--brand)">م</span>
+        مووی‌تون
+      </div>
+      <p class="muted text-sm mt-3 leading-7">تماشای فیلم، سریال و انیمیشن با دوبله و زیرنویس فارسی. این نسخه نمایشی فرانت‌اند است و داده‌ها به‌صورت نمونه نمایش داده می‌شوند.</p>
+      <div class="flex gap-2 mt-4">
+        <a href="#" aria-label="اینستاگرام" class="p-2 rounded-lg border" style="border-color: var(--border)">📸</a>
+        <a href="#" aria-label="تلگرام" class="p-2 rounded-lg border" style="border-color: var(--border)">✈️</a>
+        <a href="#" aria-label="ایکس" class="p-2 rounded-lg border" style="border-color: var(--border)">𝕏</a>
+        <a href="#" aria-label="یوتیوب" class="p-2 rounded-lg border" style="border-color: var(--border)">▶️</a>
+      </div>
+    </div>
+    <nav aria-label="دسترسی سریع">
+      <h3 class="font-bold mb-3">دسترسی سریع</h3>
+      <ul class="space-y-2 text-sm muted">
+        <li><a href="/movies">فیلم‌ها</a></li>
+        <li><a href="/series">سریال‌ها</a></li>
+        <li><a href="/animations">انیمیشن‌ها</a></li>
+        <li><a href="/new">تازه‌ها</a></li>
+        <li><a href="/top">برترین‌ها</a></li>
+        <li><a href="/collections">مجموعه‌ها</a></li>
+      </ul>
+    </nav>
+    <nav aria-label="حساب کاربری">
+      <h3 class="font-bold mb-3">کاربری</h3>
+      <ul class="space-y-2 text-sm muted">
+        <li><a href="/login">ورود</a></li>
+        <li><a href="/register">ثبت‌نام</a></li>
+        <li><a href="/profile">حساب کاربری</a></li>
+        <li><a href="/favorites">علاقه‌مندی‌ها</a></li>
+        <li><a href="/watchlist">تماشای بعدی</a></li>
+        <li><a href="/subscription">اشتراک‌ها</a></li>
+      </ul>
+    </nav>
+    <nav aria-label="راهنما">
+      <h3 class="font-bold mb-3">راهنما</h3>
+      <ul class="space-y-2 text-sm muted">
+        <li><a href="/about">درباره ما</a></li>
+        <li><a href="/contact">تماس با ما</a></li>
+        <li><a href="/faq">سوالات متداول</a></li>
+        <li><a href="/terms">قوانین و مقررات</a></li>
+        <li><a href="/privacy">حریم خصوصی</a></li>
+        <li><a href="/report">گزارش محتوا</a></li>
+      </ul>
+    </nav>
+  </div>
+  <div class="border-t" style="border-color: var(--border)">
+    <p class="mx-auto max-w-7xl px-4 py-4 text-xs muted">© {toFa(year)} مووی‌تون — تمامی حقوق محفوظ است. (نسخه نمایشی)</p>
+  </div>
+  <nav class="md:hidden fixed bottom-0 inset-x-0 z-40 border-t" style="background: var(--bg); border-color: var(--border)" aria-label="ناوبری پایین موبایل">
+    <div class="grid grid-cols-5 text-[11px] text-center">
+      <a href="/" class="py-2.5">🏠<br/>خانه</a>
+      <a href="/movies" class="py-2.5">🎬<br/>فیلم</a>
+      <a href="/search" class="py-2.5">🔍<br/>جستجو</a>
+      <a href="/watchlist" class="py-2.5">🔖<br/>لیست من</a>
+      <a href="/profile" class="py-2.5">👤<br/>حساب</a>
+    </div>
+  </nav>
+  <div class="h-16 md:hidden"></div>
+</footer>

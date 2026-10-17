@@ -1,0 +1,76 @@
+---
+import Base from '../../layouts/Base.astro';
+import Breadcrumbs from '../../components/Breadcrumbs.astro';
+import TitleCard from '../../components/TitleCard.astro';
+import Pagination from '../../components/Pagination.astro';
+import EmptyState from '../../components/EmptyState.astro';
+import { titles, genres } from '../../data';
+import { filterTitles, paginate } from '../../lib/repository';
+import { toFa } from '../../lib/fa';
+
+const params = Astro.url.searchParams;
+const page = Number(params.get('page') ?? 1) || 1;
+const genre = params.get('genre') ?? '';
+const year = params.get('year') ? Number(params.get('year')) : undefined;
+const country = params.get('country') ?? '';
+const minRating = params.get('rating') ? Number(params.get('rating')) : undefined;
+const sort = (params.get('sort') as 'newest' | 'views' | 'rating' | 'year') || 'newest';
+
+const filtered = filterTitles(titles, { type: 'movie', genre: genre || undefined, year, country: country || undefined, minRating, sort });
+const { items, totalPages, page: safe } = paginate(filtered, page, 12);
+const base = `/movies?genre=${encodeURIComponent(genre)}&year=${year ?? ''}&country=${encodeURIComponent(country)}&rating=${minRating ?? ''}&sort=${sort}`;
+const years = [...new Set(titles.map((t) => t.year))].sort((a, b) => b - a);
+const countries = [...new Set(titles.flatMap((t) => t.countries))];
+---
+<Base title="فیلم‌ها" description="آرشیو فیلم‌ها با فیلتر ژانر، سال، کشور و امتیاز — مووی‌تون">
+  <div class="mx-auto max-w-7xl px-4 py-6">
+    <Breadcrumbs crumbs={[{ label: 'فیلم‌ها' }]} />
+    <h1 class="font-black text-2xl mb-1">فیلم‌ها</h1>
+    <p class="muted text-sm mb-5">{toFa(filtered.length)} عنوان پیدا شد</p>
+
+    <form method="get" action="/movies" class="card p-4 grid gap-3 sm:grid-cols-3 lg:grid-cols-6 mb-6" aria-label="فیلتر فیلم‌ها">
+      <label class="text-sm">ژانر
+        <select name="genre" class="mt-1 w-full rounded-lg border px-2 py-2 text-sm" style="background: var(--bg); border-color: var(--border)">
+          <option value="">همه</option>
+          {genres.map((g) => <option value={g.name} selected={genre === g.name}>{g.name}</option>)}
+        </select>
+      </label>
+      <label class="text-sm">سال
+        <select name="year" class="mt-1 w-full rounded-lg border px-2 py-2 text-sm" style="background: var(--bg); border-color: var(--border)">
+          <option value="">همه</option>
+          {years.map((y) => <option value={y} selected={year === y}>{toFa(y)}</option>)}
+        </select>
+      </label>
+      <label class="text-sm">کشور
+        <select name="country" class="mt-1 w-full rounded-lg border px-2 py-2 text-sm" style="background: var(--bg); border-color: var(--border)">
+          <option value="">همه</option>
+          {countries.map((c) => <option value={c} selected={country === c}>{c}</option>)}
+        </select>
+      </label>
+      <label class="text-sm">حداقل امتیاز
+        <select name="rating" class="mt-1 w-full rounded-lg border px-2 py-2 text-sm" style="background: var(--bg); border-color: var(--border)">
+          <option value="">همه</option>
+          {[6, 7, 8].map((r) => <option value={r} selected={minRating === r}>بالای {toFa(r)}</option>)}
+        </select>
+      </label>
+      <label class="text-sm">مرتب‌سازی
+        <select name="sort" class="mt-1 w-full rounded-lg border px-2 py-2 text-sm" style="background: var(--bg); border-color: var(--border)">
+          <option value="newest" selected={sort === 'newest'}>جدیدترین</option>
+          <option value="views" selected={sort === 'views'}>پربیننده‌ترین</option>
+          <option value="rating" selected={sort === 'rating'}>بالاترین امتیاز</option>
+          <option value="year" selected={sort === 'year'}>سال انتشار</option>
+        </select>
+      </label>
+      <div class="flex items-end"><button class="btn-primary text-sm w-full" type="submit">اعمال فیلتر</button></div>
+    </form>
+
+    {items.length === 0 ? (
+      <EmptyState title="فیلمی پیدا نشد" message="فیلترها را تغییر دهید و دوباره تلاش کنید." />
+    ) : (
+      <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
+        {items.map((t) => <TitleCard title={t} />)}
+      </div>
+    )}
+    <Pagination page={safe} totalPages={totalPages} base={base} />
+  </div>
+</Base>

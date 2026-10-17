@@ -1,0 +1,60 @@
+---
+import SectionHeading from './SectionHeading.astro';
+
+interface Props {
+  eyebrow: string;
+  title: string;
+  moreHref?: string;
+  moreText?: string;
+  /** Show the touch scroll hint (for snap scrollers). */
+  scrollable?: boolean;
+  label: string;
+}
+
+const { eyebrow, title, moreHref, moreText, scrollable = false, label } = Astro.props;
+---
+<section aria-label={label} class="home-section">
+  <p class="home-eyebrow">{eyebrow}</p>
+  <SectionHeading title={title} moreHref={moreHref} moreText={moreText} />
+  <slot />
+  {scrollable && (
+    <p class="scroll-hint" aria-hidden="true">
+      <span>بکشید</span>
+      <svg width="26" height="12" viewBox="0 0 26 12" fill="none" aria-hidden="true">
+        <path d="M25 6H2m0 0 4.5-4.5M2 6l4.5 4.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
+      </svg>
+    </p>
+  )}
+</section>
+
+<style>
+  .home-section {
+    scroll-margin-top: 5rem;
+  }
+  .home-eyebrow {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--brand);
+    margin-bottom: 0.15rem;
+    letter-spacing: 0.02em;
+  }
+  .scroll-hint {
+    display: none;
+    align-items: center;
+    gap: 0.4rem;
+    margin-top: 0.6rem;
+    font-size: 0.72rem;
+    color: var(--muted);
+  }
+  /* Touch devices get a visible nudge; desktop gets hover arrows instead. */
+  @media (pointer: coarse) {
+    .scroll-hint {
+      display: inline-flex;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .scroll-hint svg {
+      animation: none;
+    }
+  }
+</style>

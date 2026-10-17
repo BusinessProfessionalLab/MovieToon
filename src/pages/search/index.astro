@@ -1,0 +1,35 @@
+---
+import Base from '../../layouts/Base.astro';
+import Breadcrumbs from '../../components/Breadcrumbs.astro';
+import TitleCard from '../../components/TitleCard.astro';
+import EmptyState from '../../components/EmptyState.astro';
+import SearchBox from '../../islands/SearchBox.tsx';
+import { titles } from '../../data';
+import { searchTitles, routeFor } from '../../lib/repository';
+import { toFa } from '../../lib/fa';
+
+const q = Astro.url.searchParams.get('q') ?? '';
+const results = searchTitles(titles, q);
+const index = titles.map((t) => ({ slug: t.slug, titleFa: t.titleFa, titleEn: t.titleEn, type: t.type, year: t.year, poster: t.poster, href: routeFor(t) }));
+---
+<Base title={q ? `جستجو: ${q}` : 'جستجو'} description={q ? `نتایج جستجو برای «${q}»` : 'جستجو در مووی‌تون'}>
+  <div class="mx-auto max-w-7xl px-4 py-6">
+    <Breadcrumbs crumbs={[{ label: 'جستجو' }]} />
+    <h1 class="font-black text-2xl mb-4">جستجو</h1>
+    <SearchBox data={index} initial={q} client:load />
+    {q && (
+      <p class="muted text-sm mt-4">
+        {results.length > 0 ? <>{toFa(results.length)} نتیجه برای «{q}» پیدا شد</> : <>نتیجه‌ای برای «{q}» پیدا نشد</>}
+      </p>
+    )}
+    <div class="mt-4">
+      {q && results.length === 0 ? (
+        <EmptyState title="نتیجه‌ای پیدا نشد" message="عبارت دیگری را امتحان کنید؛ مثلا نام فیلم، بازیگر یا ژانر." linkText="بازگشت به خانه" linkHref="/" />
+      ) : (
+        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
+          {results.map((t) => <TitleCard title={t} />)}
+        </div>
+      )}
+    </div>
+  </div>
+</Base>

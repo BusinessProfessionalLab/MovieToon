@@ -1,0 +1,15 @@
+---
+interface Props {
+  title: string;
+  linkText?: string;
+  linkHref?: string;
+  message?: string;
+}
+const { title, linkText, linkHref, message = 'موردی برای نمایش پیدا نشد.' } = Astro.props;
+---
+<div class="card p-10 text-center">
+  <div class="text-5xl mb-4" aria-hidden="true">🎬</div>
+  <h2 class="font-black text-lg">{title}</h2>
+  <p class="muted text-sm mt-2">{message}</p>
+  {linkText && linkHref && <a href={linkHref} class="btn-primary text-sm mt-5">{linkText}</a>}
+</div>

@@ -1,0 +1,84 @@
+---
+/**
+ * AnimatedBackground — one fixed, non-interactive ambient layer for the home page.
+ * Three large blurred color blobs drift on slow transform-only loops (45–60s),
+ * plus a faint SVG-noise grain overlay. Theme-aware (softer in light mode),
+ * disabled entirely under prefers-reduced-motion. Never intercepts input.
+ */
+---
+<div class="anim-bg" aria-hidden="true">
+  <span class="blob blob-1"></span>
+  <span class="blob blob-2"></span>
+  <span class="blob blob-3"></span>
+  <span class="grain"></span>
+</div>
+
+<style>
+  .anim-bg {
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    overflow: hidden;
+    contain: strict;
+    background: var(--bg);
+  }
+  .blob {
+    position: absolute;
+    width: 46vmax;
+    height: 46vmax;
+    border-radius: 50%;
+    filter: blur(90px);
+    opacity: 0.5;
+    will-change: transform;
+  }
+  .blob-1 {
+    top: -14vmax;
+    inset-inline-start: -10vmax;
+    background: radial-gradient(circle at center, rgba(244, 63, 94, 0.32), transparent 65%);
+    animation: drift-1 52s ease-in-out infinite alternate;
+  }
+  .blob-2 {
+    bottom: -18vmax;
+    inset-inline-end: -12vmax;
+    background: radial-gradient(circle at center, rgba(139, 92, 246, 0.3), transparent 65%);
+    animation: drift-2 60s ease-in-out infinite alternate;
+  }
+  .blob-3 {
+    top: 34%;
+    inset-inline-start: 32%;
+    width: 34vmax;
+    height: 34vmax;
+    background: radial-gradient(circle at center, rgba(20, 184, 166, 0.22), transparent 65%);
+    animation: drift-3 46s ease-in-out infinite alternate;
+  }
+  /* Softer wash in light mode so text contrast stays comfortable. */
+  [data-theme='light'] .blob {
+    opacity: 0.28;
+  }
+  .grain {
+    position: absolute;
+    inset: 0;
+    opacity: 0.05;
+    mix-blend-mode: overlay;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");
+    background-size: 140px 140px;
+  }
+  @keyframes drift-1 {
+    from { transform: translate(0, 0) scale(1); }
+    to { transform: translate(9vmax, 7vmax) scale(1.12); }
+  }
+  @keyframes drift-2 {
+    from { transform: translate(0, 0) scale(1.08); }
+    to { transform: translate(-8vmax, -6vmax) scale(1); }
+  }
+  @keyframes drift-3 {
+    from { transform: translate(0, 0) scale(1); }
+    to { transform: translate(-6vmax, 8vmax) scale(1.15); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .blob {
+      animation: none;
+    }
+  }
+</style>

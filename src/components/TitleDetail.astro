@@ -1,0 +1,162 @@
+---
+import TitleCard from './TitleCard.astro';
+import SectionHeading from './SectionHeading.astro';
+import TitleCarousel from '../islands/TitleCarousel.tsx';
+import SeasonTabs from '../islands/SeasonTabs.tsx';
+import CommentsSection from '../islands/CommentsSection.tsx';
+import ListActions from '../islands/ListActions.tsx';
+import Breadcrumbs from './Breadcrumbs.astro';
+import type { Title, TitleComment } from '../types';
+import { titles, comments, actors } from '../data';
+import { similarTitles, routeFor } from '../lib/repository';
+import { toFa, toFaDecimal, formatDuration, formatViews, formatJalaliDate } from '../lib/fa';
+
+interface Props {
+  title: Title;
+  backLabel: string;
+  backHref: string;
+}
+const { title: t, backLabel, backHref } = Astro.props;
+const similar = similarTitles(titles, t, 10);
+const titleComments: TitleComment[] = comments.filter((c) => c.titleSlug === t.slug);
+const castActors = t.cast.map((name) => ({ name, actor: actors.find((a) => a.name === name) }));
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': t.type === 'movie' ? 'Movie' : 'TVSeries',
+  name: t.titleFa,
+  alternateName: t.titleEn,
+  inLanguage: 'fa',
+  datePublished: String(t.year),
+  genre: t.genres,
+  director: { '@type': 'Person', name: t.director },
+  aggregateRating: { '@type': 'AggregateRating', ratingValue: t.imdb, bestRating: 10 },
+  description: t.description,
+  image: t.poster,
+};
+---
+<div class="mx-auto max-w-7xl px-4 py-6">
+  <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
+  <Breadcrumbs crumbs={[{ label: backLabel, href: backHref }, { label: t.titleFa }]} />
+
+  <section class="relative overflow-hidden rounded-2xl border" style="border-color: var(--border)">
+    <img src={t.backdrop} alt="" aria-hidden="true" class="absolute inset-0 w-full h-full object-cover" />
+    <div class="absolute inset-0" style="background: linear-gradient(to top, rgba(0,0,0,.88), rgba(0,0,0,.45))"></div>
+    <div class="relative p-5 md:p-8 flex flex-col md:flex-row gap-6 text-white">
+      <img src={t.poster} alt={`پوستر ${t.titleFa}`} width="220" height="330" class="rounded-xl w-40 md:w-56 object-cover shrink-0" />
+      <div class="flex-1">
+        <h1 class="font-black text-2xl md:text-3xl">{t.titleFa}</h1>
+        <p class="text-sm opacity-70 mt-1" dir="ltr" style="text-align: right">{t.titleEn}</p>
+        <div class="flex flex-wrap gap-2 mt-3 text-xs">
+          <span class="px-2.5 py-1 rounded-lg" style="background: rgba(255,255,255,.15)">⭐ {toFaDecimal(t.imdb)} / {toFaDecimal(t.siteScore)} مووی‌تون</span>
+          <span class="px-2.5 py-1 rounded-lg" style="background: rgba(255,255,255,.15)">📅 {toFa(t.jalaliYear)}</span>
+          {t.runtimeMin && <span class="px-2.5 py-1 rounded-lg" style="background: rgba(255,255,255,.15)">⏱ {formatDuration(t.runtimeMin)}</span>}
+          {t.seasonsCount && <span class="px-2.5 py-1 rounded-lg" style="background: rgba(255,255,255,.15)">📺 {toFa(t.seasonsCount)} فصل • {toFa(t.episodesCount ?? 0)} قسمت</span>}
+          <span class="px-2.5 py-1 rounded-lg" style="background: rgba(255,255,255,.15)">{t.ageRating}</span>
+          <span class="px-2.5 py-1 rounded-lg" style="background: var(--brand)">{t.quality}</span>
+          {t.dubbed && <span class="px-2.5 py-1 rounded-lg" style="background: rgba(255,255,255,.15)">دوبله فارسی</span>}
+        </div>
+        <p class="text-sm leading-8 mt-4 max-w-3xl opacity-90">{t.description}</p>
+        <dl class="grid sm:grid-cols-2 gap-x-6 gap-y-1.5 text-sm mt-4 max-w-3xl">
+          <div class="flex gap-2"><dt class="opacity-70">کارگردان:</dt><dd class="font-bold">{t.director}</dd></div>
+          <div class="flex gap-2"><dt class="opacity-70">کشور:</dt><dd class="font-bold">{t.countries.join('، ')}</dd></div>
+          <div class="flex gap-2"><dt class="opacity-70">ژانر:</dt><dd class="font-bold">{t.genres.join('، ')}</dd></div>
+          <div class="flex gap-2"><dt class="opacity-70">زبان:</dt><dd class="font-bold">{t.language}</dd></div>
+          <div class="flex gap-2"><dt class="opacity-70">بازدید:</dt><dd class="font-bold">{formatViews(t.views)}</dd></div>
+          <div class="flex gap-2"><dt class="opacity-70">افزوده‌شده:</dt><dd class="font-bold">{formatJalaliDate(t.addedAt)}</dd></div>
+        </dl>
+        <div class="flex flex-wrap items-center gap-2 mt-5">
+          <button id="play-btn" class="btn-primary text-sm">▶ پخش تریلر / تماشا</button>
+          <a href={`/watch/${t.slug}`} class="btn-ghost text-sm !text-white" style="border-color: rgba(255,255,255,.4)">رفتن به صفحه تماشا</a>
+        </div>
+        <div class="mt-3 text-white"><ListActions slug={t.slug} title={t.titleFa} client:load /></div>
+      </div>
+    </div>
+  </section>
+
+  <dialog id="player-modal" class="rounded-2xl p-0 w-[min(92vw,820px)]" aria-label={`پخش ${t.titleFa}`}>
+    <div class="p-4" style="background: var(--card)">
+      <div class="flex items-center justify-between mb-3">
+        <h2 class="font-black">پخش «{t.titleFa}» (پیش‌نمایش)</h2>
+        <button id="modal-close" class="p-2 rounded-lg border" style="border-color: var(--border)" aria-label="بستن پخش‌کننده">✕</button>
+      </div>
+      <video controls preload="none" poster={t.backdrop} class="w-full aspect-video rounded-xl bg-black" aria-label={`پیش‌نمایش ${t.titleFa}`}>
+        <source src="https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4" type="video/mp4" />
+      </video>
+      <div class="flex flex-wrap gap-4 mt-3 text-sm">
+        <label>کیفیت:
+          <select class="rounded-lg border px-2 py-1" style="background: var(--bg); border-color: var(--border)">
+            <option>۴۸۰p</option><option>۷۲۰p</option><option selected>۱۰۸۰p</option>
+          </select>
+        </label>
+        <label>زیرنویس:
+          <select class="rounded-lg border px-2 py-1" style="background: var(--bg); border-color: var(--border)">
+            <option selected>فارسی</option><option>انگلیسی</option><option>بدون زیرنویس</option>
+          </select>
+        </label>
+        <a href={`/watch/${t.slug}`} class="btn-primary text-sm ms-auto">تماشای کامل ←</a>
+      </div>
+    </div>
+  </dialog>
+  <script is:inline>
+    const dlg = document.getElementById('player-modal');
+    document.getElementById('play-btn')?.addEventListener('click', () => {
+      if (dlg && typeof dlg.showModal === 'function') dlg.showModal();
+    });
+    document.getElementById('modal-close')?.addEventListener('click', () => {
+      if (dlg && typeof dlg.close === 'function') {
+        dlg.querySelector('video')?.pause();
+        dlg.close();
+      }
+    });
+  </script>
+
+  {t.seasons && t.seasons.length > 0 && (
+    <section class="mt-10" aria-label="فصل‌ها و قسمت‌ها">
+      <SectionHeading title="فصل‌ها و قسمت‌ها" />
+      <SeasonTabs seasons={t.seasons} watchBase={`/watch/${t.slug}`} client:visible />
+    </section>
+  )}
+
+  <section class="mt-10" aria-label="بازیگران">
+    <SectionHeading title="بازیگران" />
+    <div class="grid grid-cols-3 sm:grid-cols-6 gap-3">
+      {castActors.map(({ name, actor }) => (
+        actor ? (
+          <a href={`/actors/${actor.slug}`} class="card p-3 text-center hover:shadow-lg">
+            <img src={actor.photo} alt={`تصویر ${actor.name}`} loading="lazy" width="120" height="120" class="rounded-full object-cover w-20 h-20 mx-auto" />
+            <p class="font-bold text-sm mt-2">{actor.name}</p>
+          </a>
+        ) : (
+          <div class="card p-3 text-center"><p class="font-bold text-sm mt-2">{name}</p></div>
+        )
+      ))}
+      <div class="card p-3 text-center">
+        <p class="muted text-xs">کارگردان</p>
+        <p class="font-bold text-sm mt-1">{t.director}</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="mt-10" aria-label="عنوان‌های مشابه">
+    <SectionHeading title="عنوان‌های مشابه" />
+    <TitleCarousel id={`sim-${t.slug}`} client:visible>
+      {similar.map((s) => (
+        <div class="min-w-[150px] w-[150px] md:min-w-[180px] md:w-[180px] snap-start">
+          <TitleCard title={s} />
+        </div>
+      ))}
+    </TitleCarousel>
+    <div class="sr-only">
+      {similar.map((s) => <a href={routeFor(s)}>{s.titleFa}</a>)}
+    </div>
+  </section>
+
+  <section class="mt-10" aria-label="دیدگاه‌ها">
+    <SectionHeading title={`دیدگاه‌ها (${toFa(titleComments.length)})`} />
+    <CommentsSection
+      client:visible
+      titleSlug={t.slug}
+      initial={titleComments.map((c) => ({ id: c.id, author: c.author, avatar: c.avatar, date: formatJalaliDate(c.date), rating: c.rating, text: c.text, likes: c.likes }))}
+    />
+  </section>
+</div>

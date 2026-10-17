@@ -1,0 +1,36 @@
+---
+import Base from '../layouts/Base.astro';
+import Breadcrumbs from '../components/Breadcrumbs.astro';
+---
+<Base title="گزارش محتوا" description="فرم گزارش محتوای نامناسب یا نقض حقوق">
+  <div class="mx-auto max-w-3xl px-4 py-8">
+    <Breadcrumbs crumbs={[{ label: 'گزارش محتوا' }]} />
+    <h1 class="font-black text-2xl mb-4">گزارش محتوا (DMCA)</h1>
+    <div class="card p-6">
+      <form id="report-form" class="grid gap-3" novalidate>
+        <div><label for="r-link" class="text-sm font-bold block mb-1">لینک محتوا</label><input id="r-link" class="w-full rounded-xl border px-3 py-2.5 text-sm" style="background: var(--bg); border-color: var(--border)" placeholder="https://…" dir="ltr" /></div>
+        <div>
+          <label for="r-type" class="text-sm font-bold block mb-1">نوع گزارش</label>
+          <select id="r-type" class="w-full rounded-xl border px-3 py-2.5 text-sm" style="background: var(--bg); border-color: var(--border)">
+            <option>نقض حق نشر</option><option>محتوای نامناسب</option><option>اطلاعات نادرست</option><option>سایر موارد</option>
+          </select>
+        </div>
+        <div><label for="r-text" class="text-sm font-bold block mb-1">توضیحات</label><textarea id="r-text" rows={4} class="w-full rounded-xl border px-3 py-2.5 text-sm" style="background: var(--bg); border-color: var(--border)" placeholder="توضیح گزارش…"></textarea></div>
+        <p id="r-error" role="alert" class="hidden text-sm font-bold" style="color: var(--brand)"></p>
+        <button class="btn-primary text-sm w-fit" type="submit">ثبت گزارش</button>
+      </form>
+      <p class="muted text-xs mt-3">این فرم نمایشی است.</p>
+    </div>
+  </div>
+</Base>
+<script is:inline>
+  document.getElementById('report-form')?.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const t = document.getElementById('r-text').value.trim();
+    const err = document.getElementById('r-error');
+    if (t.length < 10) { err.textContent = 'توضیحات باید حداقل ۱۰ حرف باشد.'; err.classList.remove('hidden'); return; }
+    err.classList.add('hidden');
+    window.movietoonToast?.('گزارش شما (نمایشی) ثبت شد');
+    e.target.reset();
+  });
+</script>

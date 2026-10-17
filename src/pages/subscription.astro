@@ -1,0 +1,43 @@
+---
+import Base from '../layouts/Base.astro';
+import Breadcrumbs from '../components/Breadcrumbs.astro';
+import { plans } from '../data';
+import { toFa, formatPrice } from '../lib/fa';
+---
+<Base title="اشتراک‌ها" description="طرح‌های اشتراک مووی‌تون: ماهانه، شش‌ماهه و سالانه">
+  <div class="mx-auto max-w-6xl px-4 py-6">
+    <Breadcrumbs crumbs={[{ label: 'اشتراک‌ها' }]} />
+    <h1 class="font-black text-2xl text-center">طرح‌های اشتراک</h1>
+    <p class="muted text-sm text-center mt-1 mb-8">فقط نمایشی — خرید واقعی انجام نمی‌شود و هیچ محدودیتی اعمال نمی‌گردد.</p>
+    <div class="grid gap-4 md:grid-cols-3">
+      {plans.map((p) => (
+        <div class:list={['card p-6 text-center', p.highlighted && 'ring-2']} style={p.highlighted ? 'border-color: var(--brand)' : ''}>
+          {p.highlighted && <span class="text-xs font-black px-3 py-1 rounded-full text-white" style="background: var(--brand)">پیشنهاد ویژه</span>}
+          <h2 class="font-black text-lg mt-2">{p.name}</h2>
+          <p class="font-black text-2xl mt-3">{formatPrice(p.priceMonthly)}<span class="muted text-xs font-normal"> / ماه</span></p>
+          <ul class="text-sm mt-4 space-y-2">
+            {p.features.map((f) => <li>✓ {f}</li>)}
+          </ul>
+          <button class={p.highlighted ? 'btn-primary text-sm w-full justify-center mt-5' : 'btn-ghost text-sm w-full justify-center mt-5'} data-plan={p.name}>انتخاب طرح {p.name}</button>
+        </div>
+      ))}
+    </div>
+    <div class="card p-5 mt-8 overflow-x-auto">
+      <h2 class="font-black mb-3">مقایسه ویژگی‌ها</h2>
+      <table class="w-full text-sm min-w-[520px]">
+        <thead><tr class="muted text-xs"><th class="text-start p-2">ویژگی</th><th class="p-2">ماهانه</th><th class="p-2">شش‌ماهه</th><th class="p-2">سالانه</th></tr></thead>
+        <tbody>
+          <tr class="border-t" style="border-color: var(--border)"><td class="p-2">تماشای نامحدود</td><td class="p-2 text-center">✓</td><td class="p-2 text-center">✓</td><td class="p-2 text-center">✓</td></tr>
+          <tr class="border-t" style="border-color: var(--border)"><td class="p-2">کیفیت ۴K</td><td class="p-2 text-center">—</td><td class="p-2 text-center">✓</td><td class="p-2 text-center">✓</td></tr>
+          <tr class="border-t" style="border-color: var(--border)"><td class="p-2">دانلود آفلاین</td><td class="p-2 text-center">—</td><td class="p-2 text-center">✓</td><td class="p-2 text-center">✓</td></tr>
+          <tr class="border-t" style="border-color: var(--border)"><td class="p-2">دستگاه همزمان</td><td class="p-2 text-center">{toFa(1)}</td><td class="p-2 text-center">{toFa(2)}</td><td class="p-2 text-center">{toFa(4)}</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</Base>
+<script is:inline>
+  document.querySelectorAll('[data-plan]')?.forEach((b) =>
+    b.addEventListener('click', () => window.movietoonToast?.(`طرح «${b.dataset.plan}» به‌صورت نمایشی انتخاب شد`)),
+  );
+</script>

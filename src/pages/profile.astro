@@ -1,0 +1,49 @@
+---
+import Base from '../layouts/Base.astro';
+import Breadcrumbs from '../components/Breadcrumbs.astro';
+import TitleCard from '../components/TitleCard.astro';
+import { titles } from '../data';
+const history = titles.slice(0, 4);
+const favs = titles.slice(4, 8);
+---
+<Base title="حساب کاربری" description="مدیریت حساب، تاریخچه تماشا و علاقه‌مندی‌ها" noindex>
+  <div class="mx-auto max-w-7xl px-4 py-6">
+    <Breadcrumbs crumbs={[{ label: 'حساب کاربری' }]} />
+    <h1 class="font-black text-2xl mb-5">حساب کاربری</h1>
+    <div class="flex gap-2 mb-5 overflow-x-auto no-scrollbar" role="tablist" aria-label="بخش‌های حساب">
+      <a href="#info" class="btn-primary text-sm whitespace-nowrap">مشخصات</a>
+      <a href="#history" class="btn-ghost text-sm whitespace-nowrap">تاریخچه تماشا</a>
+      <a href="#favs" class="btn-ghost text-sm whitespace-nowrap">علاقه‌مندی‌ها</a>
+      <a href="#plan" class="btn-ghost text-sm whitespace-nowrap">اشتراک</a>
+    </div>
+    <div class="grid gap-4 lg:grid-cols-2">
+      <section id="info" class="card p-5" aria-label="مشخصات">
+        <h2 class="font-black mb-3">مشخصات فردی (نمایشی)</h2>
+        <dl class="text-sm space-y-2">
+          <div class="flex gap-2"><dt class="muted">نام:</dt><dd class="font-bold">کاربر مهمان</dd></div>
+          <div class="flex gap-2"><dt class="muted">ایمیل:</dt><dd class="font-bold" dir="ltr">guest@example.com</dd></div>
+          <div class="flex gap-2"><dt class="muted">عضویت از:</dt><dd class="font-bold">۱۴۰۳</dd></div>
+        </dl>
+        <a href="/subscription" class="btn-primary text-sm mt-4">ارتقای اشتراک</a>
+        <p class="muted text-xs mt-2">بدون بک‌اند واقعی؛ همه موارد نمایشی هستند و هیچ سطح دسترسی اعمال نمی‌شود.</p>
+      </section>
+      <section id="plan" class="card p-5" aria-label="اشتراک فعلی">
+        <h2 class="font-black mb-3">اشتراک فعلی</h2>
+        <p class="text-sm">طرح <strong>شش‌ماهه</strong> — فعال تا پایان سال (نمایشی)</p>
+        <div class="h-2 rounded-full mt-3" style="background: var(--bg-soft)">
+          <div class="h-full rounded-full" style="width: 60%; background: var(--brand)"></div>
+        </div>
+        <a href="/subscription" class="font-bold text-sm mt-3 inline-block" style="color: var(--brand)">مشاهده طرح‌ها ←</a>
+      </section>
+    </div>
+    <section id="history" class="mt-8" aria-label="تاریخچه تماشا">
+      <h2 class="font-black text-lg mb-3">تاریخچه تماشا (نمونه)</h2>
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">{history.map((t) => <TitleCard title={t} />)}</div>
+    </section>
+    <section id="favs" class="mt-8" aria-label="علاقه‌مندی‌ها">
+      <h2 class="font-black text-lg mb-3">علاقه‌مندی‌ها (نمونه)</h2>
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">{favs.map((t) => <TitleCard title={t} />)}</div>
+      <a href="/favorites" class="font-bold text-sm mt-3 inline-block" style="color: var(--brand)">مدیریت علاقه‌مندی‌های واقعی (ذخیره محلی) ←</a>
+    </section>
+  </div>
+</Base>

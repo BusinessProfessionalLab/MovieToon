@@ -1,0 +1,16 @@
+---
+import Base from '../../layouts/Base.astro';
+import TitleDetail from '../../components/TitleDetail.astro';
+import { titles } from '../../data';
+
+export function getStaticPaths() {
+  return titles.filter((t) => t.type === 'series').map((t) => ({ params: { slug: t.slug } }));
+}
+
+const { slug } = Astro.params;
+const title = titles.find((t) => t.slug === slug);
+if (!title) return Astro.redirect('/404');
+---
+<Base title={title.titleFa} description={`تماشای سریال ${title.titleFa} با دوبله و زیرنویس فارسی`} ogImage={title.backdrop}>
+  <TitleDetail title={title} backLabel="سریال‌ها" backHref="/series" />
+</Base>

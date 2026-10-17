@@ -1,0 +1,31 @@
+---
+import Base from '../../layouts/Base.astro';
+import Breadcrumbs from '../../components/Breadcrumbs.astro';
+import TitleCard from '../../components/TitleCard.astro';
+import EmptyState from '../../components/EmptyState.astro';
+import { genres, titles } from '../../data';
+import { toFa } from '../../lib/fa';
+
+export function getStaticPaths() {
+  return genres.map((g) => ({ params: { slug: g.slug } }));
+}
+
+const { slug } = Astro.params;
+const genre = genres.find((g) => g.slug === slug);
+if (!genre) return Astro.redirect('/404');
+const items = titles.filter((t) => t.genres.includes(genre.name));
+---
+<Base title={`ژانر ${genre.name}`} description={`بهترین عناوین ژانر ${genre.name} — ${genre.description}`}>
+  <div class="mx-auto max-w-7xl px-4 py-6">
+    <Breadcrumbs crumbs={[{ label: 'ژانرها', href: '/genres' }, { label: genre.name }]} />
+    <h1 class="font-black text-2xl">ژانر {genre.name}</h1>
+    <p class="muted text-sm mt-1 mb-5">{genre.description} — {toFa(items.length)} عنوان</p>
+    {items.length === 0 ? (
+      <EmptyState title="عنوانی در این ژانر نیست" />
+    ) : (
+      <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
+        {items.map((t) => <TitleCard title={t} />)}
+      </div>
+    )}
+  </div>
+</Base>
