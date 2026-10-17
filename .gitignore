@@ -1,5 +1,7 @@
 # Dependencies
 node_modules/
+/data/*.sqlite
+/data/*.sqlite-*
 
 # Astro generated files and build output
 .astro/
