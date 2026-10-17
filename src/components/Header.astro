@@ -1,7 +1,7 @@
 ---
 import { NAV } from '../lib/site';
 ---
-<header class="sticky top-0 z-40 border-b" style="background: var(--bg); border-color: var(--border)">
+<header class="site-header sticky top-0 z-40 border-b" style="border-color: var(--border)">
   <div class="mx-auto max-w-7xl px-4 flex items-center gap-3 h-16">
     <button
       id="menu-btn"
@@ -63,3 +63,16 @@ import { NAV } from '../lib/site';
     syncIcon();
   });
 </script>
+<style>
+  .site-header { background: rgba(9, 10, 16, .78); backdrop-filter: blur(22px) saturate(150%); border-color: rgba(255,255,255,.08) !important; }
+  .site-header > div:first-child { height: 4.5rem; }
+  .site-header a[aria-label*="ØµÙØ­Ù‡"] > span:first-child { box-shadow: 0 0 26px rgba(251,69,103,.48); border-radius: 13px; }
+  .site-header nav a { color: rgba(246,244,249,.78); transition: color .2s ease, opacity .2s ease; }
+  .site-header nav a:hover { color: #fff; opacity: 1; }
+  .site-header button, .site-header .ms-auto > a { border-color: rgba(255,255,255,.11) !important; background: rgba(255,255,255,.045); transition: background .2s ease, border-color .2s ease, transform .2s ease; }
+  .site-header button:hover, .site-header .ms-auto > a:hover { background: rgba(255,255,255,.1); border-color: rgba(255,255,255,.24) !important; transform: translateY(-1px); }
+  .site-header .ms-auto > a.btn-primary { background: linear-gradient(135deg,#ff5a76,#d91d4b); }
+  .site-header #mobile-drawer { background: rgba(10,11,17,.96); }
+  .site-header > div:last-child { border-color: rgba(255,255,255,.07) !important; background: rgba(255,255,255,.018); }
+  @media (prefers-reduced-motion: reduce) { .site-header * { transition: none !important; } }
+</style>

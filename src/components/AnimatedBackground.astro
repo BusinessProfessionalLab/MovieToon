@@ -10,6 +10,7 @@
   <span class="blob blob-1"></span>
   <span class="blob blob-2"></span>
   <span class="blob blob-3"></span>
+  <span class="blob blob-4"></span>
   <span class="grain"></span>
 </div>
 
@@ -21,7 +22,16 @@
     pointer-events: none;
     overflow: hidden;
     contain: strict;
-    background: var(--bg);
+    background: radial-gradient(ellipse at 50% 0%, #19121f 0%, #090a10 64%);
+  }
+  .anim-bg::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    opacity: .12;
+    background-image: linear-gradient(rgba(255,255,255,.035) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.035) 1px, transparent 1px);
+    background-size: 72px 72px;
+    mask-image: linear-gradient(to bottom, black, transparent 78%);
   }
   .blob {
     position: absolute;
@@ -52,6 +62,14 @@
     background: radial-gradient(circle at center, rgba(20, 184, 166, 0.22), transparent 65%);
     animation: drift-3 46s ease-in-out infinite alternate;
   }
+  .blob-4 {
+    top: 6%;
+    inset-inline-end: 18%;
+    width: 27vmax;
+    height: 27vmax;
+    background: radial-gradient(circle at center, rgba(251, 69, 103, 0.2), transparent 67%);
+    animation: drift-4 54s ease-in-out infinite alternate;
+  }
   /* Softer wash in light mode so text contrast stays comfortable. */
   [data-theme='light'] .blob {
     opacity: 0.28;
@@ -75,6 +93,10 @@
   @keyframes drift-3 {
     from { transform: translate(0, 0) scale(1); }
     to { transform: translate(-6vmax, 8vmax) scale(1.15); }
+  }
+  @keyframes drift-4 {
+    from { transform: translate(0, 0) scale(1); }
+    to { transform: translate(-7vmax, 9vmax) scale(1.14); }
   }
   @media (prefers-reduced-motion: reduce) {
     .blob {
