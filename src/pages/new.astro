@@ -2,10 +2,10 @@
 import Base from '../layouts/Base.astro';
 import Breadcrumbs from '../components/Breadcrumbs.astro';
 import TitleCard from '../components/TitleCard.astro';
-import { titles } from '../data';
+import { listTitles } from '../lib/api';
 import { formatJalaliDate } from '../lib/fa';
 
-const sorted = [...titles].sort((a, b) => b.addedAt.localeCompare(a.addedAt));
+const { data: sorted } = await listTitles({ sort: 'newest', page: 1, pageSize: 100 });
 const groups = new Map<string, typeof sorted>();
 for (const t of sorted) {
   const key = formatJalaliDate(t.addedAt);

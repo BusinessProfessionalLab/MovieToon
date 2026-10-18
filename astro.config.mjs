@@ -16,5 +16,10 @@ export default defineConfig({
   devToolbar: { enabled: false },
   vite: {
     ssr: { noExternal: [] },
+    server: {
+      // Local dev only: forward browser /api/* calls to the NestJS API.
+      // (Build-time SSR uses absolute PUBLIC_API_URL instead.)
+      proxy: { '/api': { target: 'http://localhost:3001', changeOrigin: true } },
+    },
   },
 });

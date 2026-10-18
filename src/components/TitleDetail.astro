@@ -7,8 +7,9 @@ import CommentsSection from '../islands/CommentsSection.tsx';
 import ListActions from '../islands/ListActions.tsx';
 import Breadcrumbs from './Breadcrumbs.astro';
 import type { Title, TitleComment } from '../types';
-import { titles, comments, actors } from '../data';
-import { similarTitles, routeFor } from '../lib/repository';
+import { getRelated, getTitle, getTitleComments } from '../lib/api';
+import { actors as localActors } from '../data';
+import { routeFor } from '../lib/repository';
 import { toFa, toFaDecimal, formatDuration, formatViews, formatJalaliDate } from '../lib/fa';
 
 interface Props {
@@ -17,9 +18,19 @@ interface Props {
   backHref: string;
 }
 const { title: t, backLabel, backHref } = Astro.props;
-const similar = similarTitles(titles, t, 10);
-const titleComments: TitleComment[] = comments.filter((c) => c.titleSlug === t.slug);
-const castActors = t.cast.map((name) => ({ name, actor: actors.find((a) => a.name === name) }));
+// Full detail (seasons, linked cast) prefers the API, falls back to the
+// passed-in title — identical content either way when the API is seeded.
+const detail = await getTitle(t.slug);
+const full = detail ?? t;
+const seasons = full.seasons && full.seasons.length > 0 ? full.seasons : t.seasons;
+const similar = await getRelated(t.slug, 10);
+const rawComments = await getTitleComments(t.slug);
+const titleComments: TitleComment[] = rawComments.map((c) => ({ ...c, date: formatJalaliDate(c.date) }));
+const linkedActors = new Map((detail && 'actors' in detail ? (detail as { actors: { slug: string; name: string; photo?: string }[] }).actors : []).map((a) => [a.name, a] as const));
+const castActors = (full.cast.length > 0 ? full.cast : t.cast).map((name) => {
+  const linked = linkedActors.get(name);
+  return { name, actor: linked ? { slug: linked.slug, name: linked.name, photo: linked.photo ?? '' } : (localActors.find((a) => a.name === name) ?? null) };
+});
 const jsonLd = {
   '@context': 'https://schema.org',
   '@type': t.type === 'movie' ? 'Movie' : 'TVSeries',
@@ -110,10 +121,10 @@ const jsonLd = {
     });
   </script>
 
-  {t.seasons && t.seasons.length > 0 && (
+  {seasons && seasons.length > 0 && (
     <section class="mt-10" aria-label="فصل‌ها و قسمت‌ها">
       <SectionHeading title="فصل‌ها و قسمت‌ها" />
-      <SeasonTabs seasons={t.seasons} watchBase={`/watch/${t.slug}`} client:visible />
+      <SeasonTabs seasons={seasons} watchBase={`/watch/${t.slug}`} client:visible />
     </section>
   )}
 

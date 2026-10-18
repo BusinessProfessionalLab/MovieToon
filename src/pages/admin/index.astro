@@ -5,8 +5,8 @@ const user = Astro.locals.user;
 if (!user) return Astro.redirect('/login?next=%2Fadmin');
 if (user.role !== 'admin') return new Response('Forbidden', { status: 403 });
 ---
-<Base title="پنل مدیریت" description="پنل مدیریت مووی‌تون" noindex>
+<Base title="پنل ادمین" description="پنل ادمین مووی‌تون" noindex>
   <main class="mx-auto max-w-7xl px-4 py-10 min-h-[60vh]">
-    <h1 class="font-black text-2xl">پنل مدیریت</h1>
+    <h1 class="font-black text-2xl">پنل ادمین</h1>
   </main>
 </Base>

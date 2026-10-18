@@ -24,13 +24,27 @@ import Breadcrumbs from '../components/Breadcrumbs.astro';
   </div>
 </Base>
 <script is:inline>
-  document.getElementById('report-form')?.addEventListener('submit', (e) => {
+  document.getElementById('report-form')?.addEventListener('submit', async (e) => {
     e.preventDefault();
     const t = document.getElementById('r-text').value.trim();
     const err = document.getElementById('r-error');
     if (t.length < 10) { err.textContent = 'توضیحات باید حداقل ۱۰ حرف باشد.'; err.classList.remove('hidden'); return; }
     err.classList.add('hidden');
-    window.movietoonToast?.('گزارش شما (نمایشی) ثبت شد');
+    try {
+      const res = await fetch('/api/reports', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          link: document.getElementById('r-link').value.trim(),
+          type: document.getElementById('r-type').value,
+          description: t,
+        }),
+      });
+      if (!res.ok) throw new Error('send failed');
+      window.movietoonToast?.('گزارش شما با موفقیت ثبت شد');
+    } catch {
+      window.movietoonToast?.('گزارش شما (نمایشی) ثبت شد');
+    }
     e.target.reset();
   });
 </script>

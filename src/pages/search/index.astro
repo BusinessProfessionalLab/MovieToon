@@ -4,13 +4,14 @@ import Breadcrumbs from '../../components/Breadcrumbs.astro';
 import TitleCard from '../../components/TitleCard.astro';
 import EmptyState from '../../components/EmptyState.astro';
 import SearchBox from '../../islands/SearchBox.tsx';
-import { titles } from '../../data';
-import { searchTitles, routeFor } from '../../lib/repository';
+import { getAllTitles, searchTitles } from '../../lib/api';
+import { routeFor } from '../../lib/repository';
 import { toFa } from '../../lib/fa';
 
 const q = Astro.url.searchParams.get('q') ?? '';
-const results = searchTitles(titles, q);
-const index = titles.map((t) => ({ slug: t.slug, titleFa: t.titleFa, titleEn: t.titleEn, type: t.type, year: t.year, poster: t.poster, href: routeFor(t) }));
+const results = await searchTitles(q.trim());
+const allTitles = await getAllTitles();
+const index = allTitles.map((t) => ({ slug: t.slug, titleFa: t.titleFa, titleEn: t.titleEn, type: t.type, year: t.year, poster: t.poster, href: routeFor(t) }));
 ---
 <Base title={q ? `جستجو: ${q}` : 'جستجو'} description={q ? `نتایج جستجو برای «${q}»` : 'جستجو در مووی‌تون'}>
   <div class="mx-auto max-w-7xl px-4 py-6">

@@ -18,7 +18,6 @@ import { NAV } from '../lib/site';
     </a>
     <nav class="hidden md:flex items-center gap-5 text-sm font-medium" aria-label="ناوبری اصلی">
       {NAV.map((n) => <a class="hover:opacity-80" href={n.href}>{n.label}</a>)}
-      <a id="admin-nav" data-admin-only class="hidden" href="/admin">پنل مدیریت</a>
     </nav>
     <div class="ms-auto flex items-center gap-2">
       <a href="/search" class="p-2 rounded-lg border" style="border-color: var(--border)" aria-label="جستجو">🔍</a>
@@ -26,7 +25,6 @@ import { NAV } from '../lib/site';
       <a data-guest href="/login" class="hidden sm:inline-flex btn-ghost text-sm">ورود</a>
       <a data-guest href="/register" class="hidden sm:inline-flex btn-primary text-sm">ثبت‌نام</a>
       <a data-member href="/profile" class="hidden sm:inline-flex btn-ghost text-sm">حساب من</a>
-      <a data-member href="/admin" class="hidden sm:inline-flex btn-ghost text-sm" data-admin-only>مدیریت</a>
       <a data-member href="/profile" class="hidden p-2 rounded-lg border sm:hidden" style="border-color: var(--border)" aria-label="حساب کاربری">👤</a>
     </div>
   </div>
@@ -37,14 +35,12 @@ import { NAV } from '../lib/site';
         <a data-guest href="/login" class="btn-ghost text-sm flex-1 text-center">ورود</a>
         <a data-guest href="/register" class="btn-primary text-sm flex-1 text-center">ثبت‌نام</a>
         <a data-member href="/profile" class="hidden btn-ghost text-sm flex-1 text-center">حساب من</a>
-        <a data-member href="/admin" class="hidden btn-primary text-sm flex-1 text-center" data-admin-only>پنل مدیریت</a>
       </div>
     </nav>
   </div>
   <div class="md:hidden border-t" style="border-color: var(--border)">
     <nav class="mx-auto max-w-7xl px-2 flex gap-1 overflow-x-auto no-scrollbar text-xs py-2" aria-label="ناوبری موبایل">
       <a href="/" class="px-3 py-2 rounded-lg whitespace-nowrap">خانه</a>
-      <a data-admin-only id="admin-mobile-nav" href="/admin" class="hidden px-3 py-2 rounded-lg whitespace-nowrap">مدیریت</a>
       {NAV.slice(0, 5).map((n) => <a href={n.href} class="px-3 py-2 rounded-lg whitespace-nowrap">{n.label}</a>)}
     </nav>
   </div>
@@ -72,12 +68,13 @@ import { NAV } from '../lib/site';
 <script is:inline>
   (async () => {
     const readUser = async () => {
+      const pickUser = (body) => body?.data?.user ?? body?.data ?? null;
       const response = await fetch('/api/auth/me', { credentials: 'same-origin' });
-      if (response.status !== 401) return response.ok ? (await response.json()).user : null;
+      if (response.status !== 401) return response.ok ? pickUser(await response.json()) : null;
       const refreshed = await fetch('/api/auth/refresh', { method: 'POST', credentials: 'same-origin' });
       if (!refreshed.ok) return null;
       const current = await fetch('/api/auth/me', { credentials: 'same-origin' });
-      return current.ok ? (await current.json()).user : null;
+      return current.ok ? pickUser(await current.json()) : null;
     };
     try {
       const user = await readUser();

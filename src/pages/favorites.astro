@@ -16,7 +16,18 @@ import Breadcrumbs from '../components/Breadcrumbs.astro';
     const grid = document.getElementById('fav-grid');
     const empty = document.getElementById('fav-empty');
     let slugs = [];
-    try { slugs = JSON.parse(localStorage.getItem('movietoon-favorites') || '[]'); } catch {}
+    try {
+      const apiRes = await fetch('/api/users/me/favorites', { credentials: 'include' });
+      if (apiRes.ok) {
+        const body = await apiRes.json();
+        if (body && body.success && Array.isArray(body.data)) slugs = body.data;
+        else throw new Error('no api');
+      } else {
+        throw new Error('no api');
+      }
+    } catch {
+      try { slugs = JSON.parse(localStorage.getItem('movietoon-favorites') || '[]'); } catch {}
+    }
     const res = await fetch('/api-titles.json').catch(() => null);
     const all = res ? await res.json() : [];
     const items = all.filter((t) => slugs.includes(t.slug));

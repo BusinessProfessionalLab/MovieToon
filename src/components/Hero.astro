@@ -368,7 +368,7 @@ const first = items[0];
 </style>
 
 <script>
-  import { inList, toggleInList, WATCH_KEY } from '../lib/store.ts';
+  import { inUserList, toggleUserList } from '../lib/api';
 
   const root = document.querySelector('[data-hero]') as HTMLElement | null;
   if (root) {
@@ -445,20 +445,24 @@ const first = items[0];
       else start();
     });
 
-    // "Watch later" toggle wired to the existing watchlist store + toast.
+    // "Watch later" toggle — API-backed when logged in, local otherwise.
     root.querySelectorAll<HTMLButtonElement>('[data-watchlater]').forEach((btn) => {
       const slug = btn.getAttribute('data-watchlater') ?? '';
       const title = btn.getAttribute('data-title') ?? '';
       const sync = () => {
-        const on = inList(WATCH_KEY, slug);
-        btn.setAttribute('aria-pressed', String(on));
-        btn.setAttribute('aria-label', on ? `حذف ${title} از تماشای بعدی` : `افزودن ${title} به تماشای بعدی`);
+        inUserList('watchlist', slug).then((on) => {
+          btn.setAttribute('aria-pressed', String(on));
+          btn.setAttribute('aria-label', on ? `حذف ${title} از تماشای بعدی` : `افزودن ${title} به تماشای بعدی`);
+        });
       };
       sync();
       btn.addEventListener('click', () => {
-        toggleInList(WATCH_KEY, slug);
-        sync();
-        window.movietoonToast?.(btn.getAttribute('aria-pressed') === 'true' ? 'به تماشای بعدی اضافه شد.' : 'از تماشای بعدی حذف شد.');
+        toggleUserList('watchlist', slug).then((slugs) => {
+          const on = slugs.includes(slug);
+          btn.setAttribute('aria-pressed', String(on));
+          btn.setAttribute('aria-label', on ? `حذف ${title} از تماشای بعدی` : `افزودن ${title} به تماشای بعدی`);
+          window.movietoonToast?.(on ? 'به تماشای بعدی اضافه شد.' : 'از تماشای بعدی حذف شد.');
+        });
       });
     });
 

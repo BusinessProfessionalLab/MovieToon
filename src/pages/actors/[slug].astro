@@ -2,18 +2,20 @@
 import Base from '../../layouts/Base.astro';
 import Breadcrumbs from '../../components/Breadcrumbs.astro';
 import TitleCard from '../../components/TitleCard.astro';
-import { actors, titles } from '../../data';
-import { actorTitles } from '../../data';
+import { actorTitles as localActorTitles, actors as localActors } from '../../data';
+import { getActor, getActorSlugs } from '../../lib/api';
 import { toFa } from '../../lib/fa';
 
-export function getStaticPaths() {
-  return actors.map((a) => ({ params: { slug: a.slug } }));
+export async function getStaticPaths() {
+  return (await getActorSlugs()).map((slug) => ({ params: { slug } }));
 }
 
 const { slug } = Astro.params;
-const actor = actors.find((a) => a.slug === slug);
-if (!actor) return Astro.redirect('/404');
-const works = actorTitles(actor.name);
+const found = await getActor(slug);
+const local = localActors.find((a) => a.slug === slug);
+if (!found && !local) return Astro.redirect('/404');
+const actor = found?.actor ?? local!;
+const works = found?.titles ?? localActorTitles(actor.name);
 ---
 <Base title={actor.name} description={`بیوگرافی ${actor.name} و فیلم‌های او — ${actor.bio.slice(0, 120)}`} ogImage={actor.photo}>
   <div class="mx-auto max-w-7xl px-4 py-6">

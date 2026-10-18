@@ -1,4 +1,6 @@
 import { useState } from 'react';
+import { postComment } from '../lib/api';
+import { formatJalaliDate } from '../lib/fa';
 
 export interface CommentItem {
   id: string;
@@ -16,7 +18,7 @@ export default function CommentsSection({ initial, titleSlug }: { initial: Comme
   const [text, setText] = useState('');
   const [error, setError] = useState('');
 
-  const submit = (e: React.FormEvent) => {
+  const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (name.trim().length < 2) {
       setError('لطفا نام خود را وارد کنید (حداقل ۲ حرف).');
@@ -27,10 +29,16 @@ export default function CommentsSection({ initial, titleSlug }: { initial: Comme
       return;
     }
     setError('');
-    setItems((prev) => [
-      { id: `local-${Date.now()}`, author: name.trim(), avatar: '/images/actors/a1.svg', date: 'امروز', rating: 8, text: text.trim(), likes: 0 },
-      ...prev,
-    ]);
+    try {
+      const saved = await postComment(titleSlug, { author: name.trim(), text: text.trim() });
+      setItems((prev) => [{ id: saved.id, author: saved.author, avatar: saved.avatar || '/images/actors/a1.svg', date: formatJalaliDate(saved.date) || 'امروز', rating: saved.rating, text: saved.text, likes: saved.likes }, ...prev]);
+    } catch {
+      // Offline/API-down fallback: keep the previous local-only behavior.
+      setItems((prev) => [
+        { id: `local-${Date.now()}`, author: name.trim(), avatar: '/images/actors/a1.svg', date: 'امروز', rating: 8, text: text.trim(), likes: 0 },
+        ...prev,
+      ]);
+    }
     setName('');
     setText('');
     window.movietoonToast?.('دیدگاه شما با موفقیت ثبت شد');

@@ -1,8 +1,15 @@
 ---
 import Base from '../../layouts/Base.astro';
 import Breadcrumbs from '../../components/Breadcrumbs.astro';
-import { genres, titles } from '../../data';
+import { getAllTitles, getGenres } from '../../lib/api';
 import { toFa } from '../../lib/fa';
+
+const genres = await getGenres();
+const counts: Record<string, number> = {};
+{
+  const all = await getAllTitles();
+  for (const t of all) for (const g of t.genres) counts[g] = (counts[g] ?? 0) + 1;
+}
 ---
 <Base title="ژانرها" description="مرور فیلم‌ها، سریال‌ها و انیمیشن‌ها بر اساس ژانر">
   <div class="mx-auto max-w-7xl px-4 py-6">
@@ -10,7 +17,7 @@ import { toFa } from '../../lib/fa';
     <h1 class="font-black text-2xl mb-5">ژانرها</h1>
     <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
       {genres.map((g, i) => {
-        const count = titles.filter((t) => t.genres.includes(g.name)).length;
+        const count = counts[g.name] ?? 0;
         return (
           <a href={`/genres/${g.slug}`} class="card p-5 hover:shadow-lg transition-shadow">
             <h2 class="font-black">{g.name}</h2>

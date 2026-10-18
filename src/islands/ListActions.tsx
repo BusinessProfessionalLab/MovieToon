@@ -1,14 +1,33 @@
 import { useEffect, useState } from 'react';
-import { FAV_KEY, WATCH_KEY, inList, toggleInList } from '../lib/store';
+import { inUserList, toggleUserList } from '../lib/api';
+
+type ListKind = 'favorites' | 'watchlist';
 
 export default function ListActions({ slug, title }: { slug: string; title: string }) {
   const [fav, setFav] = useState(false);
   const [watch, setWatch] = useState(false);
 
   useEffect(() => {
-    setFav(inList(FAV_KEY, slug));
-    setWatch(inList(WATCH_KEY, slug));
+    let cancelled = false;
+    (async () => {
+      const [f, w] = await Promise.all([inUserList('favorites' as ListKind, slug), inUserList('watchlist' as ListKind, slug)]);
+      if (!cancelled) {
+        setFav(f);
+        setWatch(w);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
   }, [slug]);
+
+  const onToggle = async (kind: ListKind, label: string) => {
+    const next = await toggleUserList(kind, slug);
+    const on = next.includes(slug);
+    if (kind === 'favorites') setFav(on);
+    else setWatch(on);
+    window.movietoonToast?.(on ? `«${title}» به ${label} اضافه شد` : `«${title}» از ${label} حذف شد`);
+  };
 
   return (
     <div className="flex flex-wrap gap-2">
@@ -16,21 +35,13 @@ export default function ListActions({ slug, title }: { slug: string; title: stri
         className="btn-ghost text-sm"
         aria-pressed={fav}
         aria-label={fav ? 'حذف از علاقه‌مندی‌ها' : 'افزودن به علاقه‌مندی‌ها'}
-        onClick={() => {
-          const next = toggleInList(FAV_KEY, slug);
-          setFav(next.includes(slug));
-          window.movietoonToast?.(next.includes(slug) ? `«${title}» به علاقه‌مندی‌ها اضافه شد` : `«${title}» از علاقه‌مندی‌ها حذف شد`);
-        }}
+        onClick={() => void onToggle('favorites', 'علاقه‌مندی‌ها')}
       >{fav ? '❤️ در علاقه‌مندی‌ها' : '🤍 علاقه‌مندی'}</button>
       <button
         className="btn-ghost text-sm"
         aria-pressed={watch}
         aria-label={watch ? 'حذف از تماشای بعدی' : 'افزودن به تماشای بعدی'}
-        onClick={() => {
-          const next = toggleInList(WATCH_KEY, slug);
-          setWatch(next.includes(slug));
-          window.movietoonToast?.(next.includes(slug) ? `«${title}» به تماشای بعدی اضافه شد` : `«${title}» از تماشای بعدی حذف شد`);
-        }}
+        onClick={() => void onToggle('watchlist', 'تماشای بعدی')}
       >{watch ? '🔖 در تماشای بعدی' : '🔖 تماشای بعدی'}</button>
     </div>
   );

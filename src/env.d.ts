@@ -1,7 +1,13 @@
-import type { User } from './lib/auth/database';
+interface LocalsUser {
+  id: string;
+  email: string;
+  name: string;
+  role: string;
+  created_at: number;
+}
 
 declare namespace App {
   interface Locals {
-    user: User | null;
+    user: LocalsUser | null;
   }
 }

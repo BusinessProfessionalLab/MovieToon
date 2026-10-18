@@ -23,6 +23,14 @@ export function inList(key: string, slug: string): boolean {
   return readList(key).includes(slug);
 }
 
+export function writeList(key: string, slugs: string[]): void {
+  try {
+    localStorage.setItem(key, JSON.stringify([...new Set(slugs)]));
+  } catch {
+    /* private mode etc. — ignore */
+  }
+}
+
 export const FAV_KEY = 'movietoon-favorites';
 export const WATCH_KEY = 'movietoon-watchlist';
 export const PROGRESS_KEY = 'movietoon-progress';

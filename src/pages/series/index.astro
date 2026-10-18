@@ -4,8 +4,7 @@ import Breadcrumbs from '../../components/Breadcrumbs.astro';
 import TitleCard from '../../components/TitleCard.astro';
 import Pagination from '../../components/Pagination.astro';
 import EmptyState from '../../components/EmptyState.astro';
-import { titles, genres } from '../../data';
-import { filterTitles, paginate } from '../../lib/repository';
+import { getAllTitles, getGenres, listTitles } from '../../lib/api';
 import { toFa } from '../../lib/fa';
 
 const params = Astro.url.searchParams;
@@ -14,16 +13,23 @@ const genre = params.get('genre') ?? '';
 const year = params.get('year') ? Number(params.get('year')) : undefined;
 const sort = (params.get('sort') as 'newest' | 'views' | 'rating' | 'year') || 'newest';
 
-const filtered = filterTitles(titles, { type: 'series', genre: genre || undefined, year, sort });
-const { items, totalPages, page: safe } = paginate(filtered, page, 12);
+const [{ data: items, meta }, allGenres, allTitles] = await Promise.all([
+  listTitles({ type: 'series', genre: genre || undefined, year, sort, page, pageSize: 12 }),
+  getGenres(),
+  getAllTitles(),
+]);
+const totalPages = meta.totalPages;
+const safe = meta.page;
+const total = meta.total;
 const base = `/series?genre=${encodeURIComponent(genre)}&year=${year ?? ''}&sort=${sort}`;
-const years = [...new Set(titles.map((t) => t.year))].sort((a: number, b: number) => b - a);
+const years = [...new Set(allTitles.map((t) => t.year))].sort((a, b) => b - a);
+const genres = allGenres;
 ---
 <Base title="سریال‌ها" description="آرشیو سریال‌های ایرانی و خارجی با دوبله و زیرنویس فارسی — مووی‌تون">
   <div class="mx-auto max-w-7xl px-4 py-6">
     <Breadcrumbs crumbs={[{ label: 'سریال‌ها' }]} />
     <h1 class="font-black text-2xl mb-1">سریال‌ها</h1>
-    <p class="muted text-sm mb-5">{toFa(filtered.length)} عنوان پیدا شد</p>
+    <p class="muted text-sm mb-5">{toFa(total)} عنوان پیدا شد</p>
     <form method="get" action="/series" class="card p-4 grid gap-3 sm:grid-cols-4 mb-6" aria-label="فیلتر سریال‌ها">
       <label class="text-sm">ژانر
         <select name="genre" class="mt-1 w-full rounded-lg border px-2 py-2 text-sm" style="background: var(--bg); border-color: var(--border)">

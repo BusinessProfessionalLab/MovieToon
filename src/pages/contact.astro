@@ -22,7 +22,7 @@ import Breadcrumbs from '../components/Breadcrumbs.astro';
   </div>
 </Base>
 <script is:inline>
-  document.getElementById('contact-form')?.addEventListener('submit', (e) => {
+  document.getElementById('contact-form')?.addEventListener('submit', async (e) => {
     e.preventDefault();
     const v = (id) => document.getElementById(id).value.trim();
     const err = document.getElementById('c-error');
@@ -31,7 +31,17 @@ import Breadcrumbs from '../components/Breadcrumbs.astro';
     if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(v('c-email'))) return show('نشانی ایمیل معتبر نیست.');
     if (v('c-text').length < 10) return show('متن پیام باید حداقل ۱۰ حرف باشد.');
     err.classList.add('hidden');
-    window.movietoonToast?.('پیام شما (نمایشی) ثبت شد 🙏');
+    try {
+      const res = await fetch('/api/contact', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: v('c-name'), email: v('c-email'), subject: v('c-subject'), message: v('c-text') }),
+      });
+      if (!res.ok) throw new Error('send failed');
+      window.movietoonToast?.('پیام شما با موفقیت ثبت شد 🙏');
+    } catch {
+      window.movietoonToast?.('پیام شما (نمایشی) ثبت شد 🙏');
+    }
     e.target.reset();
   });
 </script>

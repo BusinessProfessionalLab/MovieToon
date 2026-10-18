@@ -4,8 +4,7 @@ import Breadcrumbs from '../../components/Breadcrumbs.astro';
 import TitleCard from '../../components/TitleCard.astro';
 import Pagination from '../../components/Pagination.astro';
 import EmptyState from '../../components/EmptyState.astro';
-import { titles, genres } from '../../data';
-import { filterTitles, paginate } from '../../lib/repository';
+import { getAllTitles, getGenres, listTitles } from '../../lib/api';
 import { toFa } from '../../lib/fa';
 
 const params = Astro.url.searchParams;
@@ -16,17 +15,24 @@ const country = params.get('country') ?? '';
 const minRating = params.get('rating') ? Number(params.get('rating')) : undefined;
 const sort = (params.get('sort') as 'newest' | 'views' | 'rating' | 'year') || 'newest';
 
-const filtered = filterTitles(titles, { type: 'movie', genre: genre || undefined, year, country: country || undefined, minRating, sort });
-const { items, totalPages, page: safe } = paginate(filtered, page, 12);
+const [{ data: items, meta }, allGenres, allTitles] = await Promise.all([
+  listTitles({ type: 'movie', genre: genre || undefined, year, country: country || undefined, minRating, sort, page, pageSize: 12 }),
+  getGenres(),
+  getAllTitles(),
+]);
+const totalPages = meta.totalPages;
+const safe = meta.page;
+const total = meta.total;
 const base = `/movies?genre=${encodeURIComponent(genre)}&year=${year ?? ''}&country=${encodeURIComponent(country)}&rating=${minRating ?? ''}&sort=${sort}`;
-const years = [...new Set(titles.map((t) => t.year))].sort((a, b) => b - a);
-const countries = [...new Set(titles.flatMap((t) => t.countries))];
+const years = [...new Set(allTitles.map((t) => t.year))].sort((a, b) => b - a);
+const countries = [...new Set(allTitles.flatMap((t) => t.countries))];
+const genres = allGenres;
 ---
 <Base title="فیلم‌ها" description="آرشیو فیلم‌ها با فیلتر ژانر، سال، کشور و امتیاز — مووی‌تون">
   <div class="mx-auto max-w-7xl px-4 py-6">
     <Breadcrumbs crumbs={[{ label: 'فیلم‌ها' }]} />
     <h1 class="font-black text-2xl mb-1">فیلم‌ها</h1>
-    <p class="muted text-sm mb-5">{toFa(filtered.length)} عنوان پیدا شد</p>
+    <p class="muted text-sm mb-5">{toFa(total)} عنوان پیدا شد</p>
 
     <form method="get" action="/movies" class="card p-4 grid gap-3 sm:grid-cols-3 lg:grid-cols-6 mb-6" aria-label="فیلتر فیلم‌ها">
       <label class="text-sm">ژانر

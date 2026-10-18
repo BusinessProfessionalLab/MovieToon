@@ -3,18 +3,17 @@ import Base from '../../layouts/Base.astro';
 import Breadcrumbs from '../../components/Breadcrumbs.astro';
 import TitleCard from '../../components/TitleCard.astro';
 import WatchPlayer from '../../islands/WatchPlayer.tsx';
-import { titles } from '../../data';
-import { similarTitles, routeFor } from '../../lib/repository';
+import { getRelated, getTitle, getTitleSlugs, routeFor } from '../../lib/api';
 import { toFa } from '../../lib/fa';
 
-export function getStaticPaths() {
-  return titles.map((t) => ({ params: { slug: t.slug } }));
+export async function getStaticPaths() {
+  return (await getTitleSlugs()).map((slug) => ({ params: { slug } }));
 }
 
 const { slug } = Astro.params;
-const title = titles.find((t) => t.slug === slug);
+const title = await getTitle(slug);
 if (!title) return Astro.redirect('/404');
-const related = similarTitles(titles, title, 6);
+const related = await getRelated(slug, 6);
 // Episode nav (query handled client-side note; SSR default first episode)
 const s = Number(Astro.url.searchParams.get('s') ?? 1);
 const e = Number(Astro.url.searchParams.get('e') ?? 1);
