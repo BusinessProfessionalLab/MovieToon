@@ -368,7 +368,7 @@ const first = items[0];
 </style>
 
 <script>
-  import { inUserList, toggleUserList } from '../lib/api';
+  import { getUserList, toggleUserList } from '../lib/api';
 
   const root = document.querySelector('[data-hero]') as HTMLElement | null;
   if (root) {
@@ -446,18 +446,22 @@ const first = items[0];
     });
 
     // "Watch later" toggle — API-backed when logged in, local otherwise.
-    root.querySelectorAll<HTMLButtonElement>('[data-watchlater]').forEach((btn) => {
-      const slug = btn.getAttribute('data-watchlater') ?? '';
-      const title = btn.getAttribute('data-title') ?? '';
-      const sync = () => {
-        inUserList('watchlist', slug).then((on) => {
-          btn.setAttribute('aria-pressed', String(on));
-          btn.setAttribute('aria-label', on ? `حذف ${title} از تماشای بعدی` : `افزودن ${title} به تماشای بعدی`);
-        });
-      };
-      sync();
+    // One fetch for all slides (not one per slide).
+    const laterBtns = Array.from(root.querySelectorAll<HTMLButtonElement>('[data-watchlater]'));
+    getUserList('watchlist').then((slugs) => {
+      for (const btn of laterBtns) {
+        const slug = btn.getAttribute('data-watchlater') ?? '';
+        const title = btn.getAttribute('data-title') ?? '';
+        const on = slugs.includes(slug);
+        btn.setAttribute('aria-pressed', String(on));
+        btn.setAttribute('aria-label', on ? `حذف ${title} از تماشای بعدی` : `افزودن ${title} به تماشای بعدی`);
+      }
+    });
+    laterBtns.forEach((btn) => {
       btn.addEventListener('click', () => {
-        toggleUserList('watchlist', slug).then((slugs) => {
+        toggleUserList('watchlist', btn.getAttribute('data-watchlater') ?? '').then((slugs) => {
+          const slug = btn.getAttribute('data-watchlater') ?? '';
+          const title = btn.getAttribute('data-title') ?? '';
           const on = slugs.includes(slug);
           btn.setAttribute('aria-pressed', String(on));
           btn.setAttribute('aria-label', on ? `حذف ${title} از تماشای بعدی` : `افزودن ${title} به تماشای بعدی`);

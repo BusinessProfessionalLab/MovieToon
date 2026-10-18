@@ -4,6 +4,7 @@ import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import cookieParser from 'cookie-parser';
+import type { NextFunction, Request, Response } from 'express';
 import { AppModule } from './app.module';
 import { PersianErrorFilter } from './common/persian-error.filter';
 
@@ -12,6 +13,15 @@ async function bootstrap() {
   const config = app.get(ConfigService);
 
   app.use(cookieParser());
+  // Minimal request log so SSR/API calls per page are visible in this terminal.
+  app.use((req: Request, res: Response, next: NextFunction) => {
+    const started = Date.now();
+    res.on('finish', () => {
+      // eslint-disable-next-line no-console
+      console.log(`${req.method} ${req.originalUrl} -> ${res.statusCode} (${Date.now() - started}ms)`);
+    });
+    next();
+  });
   app.enableCors({
     origin: config.get<string>('CORS_ORIGIN'),
     credentials: true,

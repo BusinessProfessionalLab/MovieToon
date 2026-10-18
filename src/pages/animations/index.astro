@@ -4,7 +4,7 @@ import Breadcrumbs from '../../components/Breadcrumbs.astro';
 import TitleCard from '../../components/TitleCard.astro';
 import Pagination from '../../components/Pagination.astro';
 import EmptyState from '../../components/EmptyState.astro';
-import { getGenres, listTitles } from '../../lib/api';
+import { getGenresLive, listTitlesLive } from '../../lib/api';
 import { toFa } from '../../lib/fa';
 
 const params = Astro.url.searchParams;
@@ -14,8 +14,8 @@ const ageGroup = params.get('age') ?? '';
 const sort = (params.get('sort') as 'newest' | 'views' | 'rating') || 'newest';
 
 const [{ data: items, meta }, allGenres] = await Promise.all([
-  listTitles({ type: 'animation', genre: genre || undefined, ageGroup: ageGroup || undefined, sort, page, pageSize: 12 }),
-  getGenres(),
+  listTitlesLive({ type: 'animation', genre: genre || undefined, ageGroup: ageGroup || undefined, sort, page, pageSize: 12 }),
+  getGenresLive(),
 ]);
 const totalPages = meta.totalPages;
 const safe = meta.page;

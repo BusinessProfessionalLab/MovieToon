@@ -26,6 +26,7 @@ export class TitlesService {
       director: t.director,
       durationMin: t.runtimeMin,
       seasons: t.seasonsCount,
+      countries: t.countries,
       dubbed: t.dubbed,
       quality: t.quality,
       createdAt: t.addedAt,

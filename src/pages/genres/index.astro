@@ -1,13 +1,13 @@
 ---
 import Base from '../../layouts/Base.astro';
 import Breadcrumbs from '../../components/Breadcrumbs.astro';
-import { getAllTitles, getGenres } from '../../lib/api';
+import { getAllTitlesLive, getGenresLive } from '../../lib/api';
 import { toFa } from '../../lib/fa';
 
-const genres = await getGenres();
+const genres = await getGenresLive();
 const counts: Record<string, number> = {};
 {
-  const all = await getAllTitles();
+  const all = await getAllTitlesLive();
   for (const t of all) for (const g of t.genres) counts[g] = (counts[g] ?? 0) + 1;
 }
 ---

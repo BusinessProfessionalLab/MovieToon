@@ -379,6 +379,142 @@ export async function getHomeData(): Promise<HomeData> {
   return { hero, movies, series, animations, top10, fresh, collections: homeCollections, genres: homeGenres };
 }
 
+/* --------------------- homepage: database only ---------------------- */
+
+/**
+ * Homepage data, always from the live API (database).
+ * Unlike the generic helpers above, there is intentionally NO local-mock
+ * fallback here: each section is one API call, and a failed section renders
+ * as an empty state instead of mock data.
+ */
+export async function listTitlesLive(params: ListParams = {}): Promise<{ data: Title[]; meta: PageMeta }> {
+  const { page = 1, pageSize = 12, ...rest } = params;
+  try {
+    const qs = new URLSearchParams();
+    for (const [k, v] of Object.entries({ ...rest, page, pageSize })) {
+      if (v !== undefined && v !== '') qs.set(k, String(v));
+    }
+    const r = await apiGetPaged<Record<string, unknown>>(`/api/titles?${qs.toString()}`);
+    return { data: r.data.map(toTitle), meta: r.meta };
+  } catch {
+    return { data: [], meta: { page, pageSize, total: 0, totalPages: 1 } };
+  }
+}
+
+export async function getHomeDataLive(): Promise<HomeData> {
+  const [hero, movies, series, animations, top10, fresh, collections, genres] = await Promise.all([
+    apiGet<Array<Record<string, unknown>>>('/api/titles?sort=rating&featured=true&page=1&pageSize=5')
+      .then((r) => r.map(toTitle))
+      .catch(() => [] as Title[]),
+    listTitlesLive({ type: 'movie', sort: 'newest', pageSize: 10 })
+      .then((r) => r.data)
+      .catch(() => [] as Title[]),
+    listTitlesLive({ type: 'series', sort: 'views', pageSize: 10 })
+      .then((r) => r.data)
+      .catch(() => [] as Title[]),
+    listTitlesLive({ type: 'animation', sort: 'newest', pageSize: 10 })
+      .then((r) => r.data)
+      .catch(() => [] as Title[]),
+    apiGet<Array<Record<string, unknown>>>('/api/titles/top')
+      .then((r) => r.map(toTitle))
+      .catch(() => [] as Title[]),
+    listTitlesLive({ sort: 'newest', pageSize: 10 })
+      .then((r) => r.data)
+      .catch(() => [] as Title[]),
+    apiGet<Array<Collection & { titleSlugs?: string[] }>>('/api/collections')
+      .then((r) =>
+        r.map((c) => ({ slug: c.slug, name: c.name, description: c.description, cover: c.cover, titleSlugs: c.titleSlugs ?? [] })),
+      )
+      .catch(() => [] as Collection[]),
+    apiGet<Genre[]>('/api/genres').catch(() => [] as Genre[]),
+  ]);
+  return { hero, movies, series, animations, top10, fresh, collections, genres };
+}
+
+/* ------------------ listing pages: database only ------------------ */
+
+/**
+ * Listing/filter pages, always from the live API (database).
+ * No local-mock fallback anywhere on these paths: failures yield empty
+ * results (pages already render EmptyState for those).
+ */
+export async function getGenresLive(): Promise<Genre[]> {
+  try {
+    return await apiGet<Genre[]>('/api/genres');
+  } catch {
+    return [];
+  }
+}
+
+export async function getGenreSlugsLive(): Promise<string[]> {
+  return (await getGenresLive()).map((g) => g.slug);
+}
+
+export async function getGenreLive(slug: string): Promise<{ genre: Genre; titles: Title[] } | undefined> {
+  try {
+    const first = await apiGet<{ genre: Genre; titles: Array<Record<string, unknown>>; meta?: PageMeta }>(
+      `/api/genres/${encodeURIComponent(slug)}?page=1&pageSize=50`,
+    );
+    const titles = first.titles.map((t) => toTitle(t));
+    const totalPages = first.meta?.totalPages ?? 1;
+    for (let p = 2; p <= totalPages; p++) {
+      try {
+        const r = await apiGet<{ titles: Array<Record<string, unknown>> }>(
+          `/api/genres/${encodeURIComponent(slug)}?page=${p}&pageSize=50`,
+        );
+        titles.push(...r.titles.map((t) => toTitle(t)));
+      } catch {
+        /* keep titles gathered so far */
+      }
+    }
+    return { genre: first.genre, titles };
+  } catch {
+    return undefined;
+  }
+}
+
+export async function getCollectionsLive(): Promise<Collection[]> {
+  try {
+    const r = await apiGet<Array<Collection & { titleSlugs?: string[] }>>('/api/collections');
+    return r.map((c) => ({ slug: c.slug, name: c.name, description: c.description, cover: c.cover, titleSlugs: c.titleSlugs ?? [] }));
+  } catch {
+    return [];
+  }
+}
+
+export async function getCollectionLive(slug: string): Promise<{ collection: Collection; titles: Title[] } | undefined> {
+  try {
+    const r = await apiGet<{ collection: Collection & { titleSlugs?: string[] }; titles: Array<Record<string, unknown>> }>(
+      `/api/collections/${encodeURIComponent(slug)}`,
+    );
+    return {
+      collection: { slug: r.collection.slug, name: r.collection.name, description: r.collection.description, cover: r.collection.cover, titleSlugs: r.collection.titleSlugs ?? r.titles.map((t) => String(t['slug'])) },
+      titles: r.titles.map(toTitle),
+    };
+  } catch {
+    return undefined;
+  }
+}
+
+export async function getCollectionsWithTitlesLive(): Promise<Array<{ collection: Collection; titles: Title[] }>> {
+  const cols = await getCollectionsLive();
+  const out: Array<{ collection: Collection; titles: Title[] }> = [];
+  for (const collection of cols) {
+    const full = await getCollectionLive(collection.slug);
+    out.push({ collection, titles: full?.titles ?? [] });
+  }
+  return out;
+}
+
+export async function getAllTitlesLive(): Promise<Title[]> {
+  const first = await listTitlesLive({ page: 1, pageSize: 50 });
+  const out = [...first.data];
+  for (let p = 2; p <= first.meta.totalPages; p++) {
+    out.push(...(await listTitlesLive({ page: p, pageSize: 50 })).data);
+  }
+  return out;
+}
+
 /* ------------------------------- comments ----------------------------- */
 
 export interface CommentItem {
