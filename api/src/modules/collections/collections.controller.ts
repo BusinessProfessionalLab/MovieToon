@@ -36,7 +36,7 @@ export class CollectionsController {
 
   private async titleSlugs(slug: string): Promise<string[]> {
     const rows: { title_slug: string }[] = await this.collections.manager.query(
-      'SELECT title_slug FROM collection_titles WHERE collection_slug = ?',
+      'SELECT title_slug FROM collection_titles WHERE collection_slug = $1',
       [slug],
     );
     return rows.map((r) => r.title_slug);

@@ -19,7 +19,7 @@ export class ActorsController {
     const actor = await this.actors.findOne({ where: { slug } });
     if (!actor) throw new NotFoundException({ code: 'NOT_FOUND', error: 'بازیگر پیدا نشد.' });
     const rows: { title_slug: string }[] = await this.actors.manager.query(
-      'SELECT title_slug FROM title_actors WHERE actor_slug = ?',
+      'SELECT title_slug FROM title_actors WHERE actor_slug = $1',
       [slug],
     );
     const titles = await this.titles.bySlugs(rows.map((r) => r.title_slug));

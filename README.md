@@ -26,9 +26,9 @@ npm start         # اجرای سرور ساخته‌شده
 ## احراز هویت و پنل مدیریت
 
 - پروژه برای SSR به Node.js نسخهٔ 24.15 یا بالاتر نیاز دارد. آداپتر رسمی Node، APIها و صفحهٔ ادمین را روی همان مبدأ فرانت اجرا می‌کند.
-- پایگاه SQLite به‌طور پیش‌فرض در `data/movietoon.sqlite` ساخته می‌شود. پوشهٔ `data/` و فایل‌های `.env` در Git نادیده گرفته می‌شوند.
+- پایگاه داده PostgreSQL است (پیش‌فرض لوکال: دیتابیس `movietoon` با یوزر `movietoon`). متغیرهای `DB_*` در `api/.env` را تنظیم کنید؛ فایل‌های `.env` در Git نادیده گرفته می‌شوند.
 - ثبت‌نام عمومی فقط نقش `user` می‌سازد. پنل `/admin` در سمت سرور نقش فعلی کاربر را از دیتابیس بررسی می‌کند.
-- ساخت اولین ادمین: مقادیر `BOOTSTRAP_ADMIN_EMAIL`، `BOOTSTRAP_ADMIN_NAME` و `BOOTSTRAP_ADMIN_PASSWORD` را موقتاً در `.env` بگذارید، سپس `npm run admin:create` را اجرا کنید. گذرواژه باید دست‌کم ۱۲ نویسه باشد. پس از ساخت موفق، دستور مقادیر موقت bootstrap را از `.env` حذف می‌کند.
+- ساخت ادمین: مستقیم در فرانت ثبت‌نام کنید، سپس در Postgres نقش را بالا ببرید: `UPDATE users SET role='admin' WHERE email='...';` گذرواژه باید دست‌کم ۱۲ نویسه باشد.
 - در تولید، `AUTH_JWT_SECRET` را با کلید تصادفی حداقل ۳۲ بایتی تنظیم کنید؛ سرور تولیدی بدون آن بالا نمی‌آید. نمونهٔ تولید کلید: `node -e "console.log(require('node:crypto').randomBytes(48).toString('base64url'))"`
 - access JWT پانزده دقیقه اعتبار دارد؛ refresh JWT هفت روزه در کوکی `HttpOnly` قرار می‌گیرد، در دیتابیس فقط هش آن ذخیره می‌شود و هنگام refresh می‌چرخد. خروج، خانوادهٔ توکن refresh را لغو می‌کند.
 - API ورود و ثبت‌نام: `POST /api/auth/login`, `POST /api/auth/register`, `POST /api/auth/refresh`, `POST /api/auth/logout`; وضعیت حساب: `GET /api/auth/me`.
@@ -44,10 +44,8 @@ src/
   islands/      # React: HeroSlider, TitleCarousel, SearchBox, WatchPlayer, SeasonTabs, CommentsSection, ListActions
   data/index.ts # موک‌دیتا: ۴۲ عنوان، ۱۵ بازیگر، ۱۲ ژانر، کامنت، پلن، کالکشن
   types/        # Title, Episode, Season, Actor, Genre, Comment, Plan, Collection
-  lib/auth/     # دیتابیس SQLite، هش گذرواژه، JWT و نشست‌های refresh
+  lib/auth/     # هش گذرواژه، JWT و نشست‌های refresh
   lib/          # فرمت فارسی، repository، API داده و ذخیره‌های محلی
-scripts/
-  create-admin.mjs # ساخت امن حساب مدیر اولیه
   styles/global.css  # دیزاین‌سیستم با CSS variables + تم روشن/تیره
 public/images/  # پوستر/بک‌دراپ/بازیگر SVG جایگزین (ساخته دست، بدون کپی‌رایت)
 ```

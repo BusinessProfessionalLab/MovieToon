@@ -1,8 +1,8 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
-/** 0001 — full initial schema: catalog, comments, reports, auth, user lists. */
-export class InitSchema1792000000000 implements MigrationInterface {
-  name = 'InitSchema1792000000000';
+/** 0001 (postgres) — full initial schema: catalog, comments, reports, auth, user lists. */
+export class InitSchema1793000000000 implements MigrationInterface {
+  name = 'InitSchema1793000000000';
 
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(`CREATE TABLE IF NOT EXISTS "genres" (
@@ -14,40 +14,40 @@ export class InitSchema1792000000000 implements MigrationInterface {
       "slug" varchar PRIMARY KEY NOT NULL,
       "name" varchar NOT NULL,
       "latin_name" varchar NOT NULL,
-      "photo" varchar NOT NULL DEFAULT (''),
+      "photo" varchar NOT NULL DEFAULT '',
       "birth_year" integer NOT NULL,
-      "birth_place" varchar NOT NULL DEFAULT (''),
-      "bio" text NOT NULL DEFAULT ('')
+      "birth_place" varchar NOT NULL DEFAULT '',
+      "bio" text NOT NULL DEFAULT ''
     )`);
     await queryRunner.query(`CREATE TABLE IF NOT EXISTS "titles" (
       "slug" varchar PRIMARY KEY NOT NULL,
       "type" varchar NOT NULL,
       "title_fa" varchar NOT NULL,
-      "title_en" varchar NOT NULL DEFAULT (''),
+      "title_en" varchar NOT NULL DEFAULT '',
       "year" integer NOT NULL,
       "jalali_year" integer NOT NULL,
       "runtime_min" integer,
       "seasons_count" integer,
       "episodes_count" integer,
-      "countries" text NOT NULL DEFAULT ('[]'),
-      "genres" text NOT NULL DEFAULT ('[]'),
-      "director" varchar NOT NULL DEFAULT (''),
-      "cast" text NOT NULL DEFAULT ('[]'),
-      "description" text NOT NULL DEFAULT (''),
-      "imdb" real NOT NULL DEFAULT (0),
-      "site_score" real NOT NULL DEFAULT (0),
-      "age_rating" varchar NOT NULL DEFAULT (''),
-      "quality" varchar NOT NULL DEFAULT (''),
-      "dubbed" boolean NOT NULL DEFAULT (0),
-      "subtitled" boolean NOT NULL DEFAULT (1),
-      "poster" varchar NOT NULL DEFAULT (''),
-      "backdrop" varchar NOT NULL DEFAULT (''),
-      "views" integer NOT NULL DEFAULT (0),
+      "countries" jsonb NOT NULL DEFAULT '[]',
+      "genres" jsonb NOT NULL DEFAULT '[]',
+      "director" varchar NOT NULL DEFAULT '',
+      "cast" jsonb NOT NULL DEFAULT '[]',
+      "description" text NOT NULL DEFAULT '',
+      "imdb" real NOT NULL DEFAULT 0,
+      "site_score" real NOT NULL DEFAULT 0,
+      "age_rating" varchar NOT NULL DEFAULT '',
+      "quality" varchar NOT NULL DEFAULT '',
+      "dubbed" boolean NOT NULL DEFAULT false,
+      "subtitled" boolean NOT NULL DEFAULT true,
+      "poster" varchar NOT NULL DEFAULT '',
+      "backdrop" varchar NOT NULL DEFAULT '',
+      "views" integer NOT NULL DEFAULT 0,
       "added_at" varchar NOT NULL,
-      "featured" boolean NOT NULL DEFAULT (0),
+      "featured" boolean NOT NULL DEFAULT false,
       "top10_rank" integer,
       "age_group" varchar,
-      "language" varchar NOT NULL DEFAULT ('فارسی')
+      "language" varchar NOT NULL DEFAULT 'فارسی'
     )`);
     await queryRunner.query(`CREATE INDEX IF NOT EXISTS "IDX_titles_type" ON "titles" ("type")`);
     await queryRunner.query(`CREATE INDEX IF NOT EXISTS "IDX_titles_year" ON "titles" ("year")`);
@@ -63,8 +63,8 @@ export class InitSchema1792000000000 implements MigrationInterface {
     await queryRunner.query(`CREATE TABLE IF NOT EXISTS "collections" (
       "slug" varchar PRIMARY KEY NOT NULL,
       "name" varchar NOT NULL,
-      "description" text NOT NULL DEFAULT (''),
-      "cover" varchar NOT NULL DEFAULT ('')
+      "description" text NOT NULL DEFAULT '',
+      "cover" varchar NOT NULL DEFAULT ''
     )`);
     await queryRunner.query(`CREATE TABLE IF NOT EXISTS "collection_titles" (
       "collection_slug" varchar NOT NULL,
@@ -74,40 +74,40 @@ export class InitSchema1792000000000 implements MigrationInterface {
       FOREIGN KEY ("title_slug") REFERENCES "titles"("slug") ON DELETE CASCADE
     )`);
     await queryRunner.query(`CREATE TABLE IF NOT EXISTS "episodes" (
-      "id" integer PRIMARY KEY AUTOINCREMENT NOT NULL,
+      "id" SERIAL PRIMARY KEY NOT NULL,
       "title_slug" varchar NOT NULL,
       "season" integer NOT NULL,
       "number" integer NOT NULL,
       "title_fa" varchar NOT NULL,
       "duration_min" integer NOT NULL,
-      "thumbnail" varchar NOT NULL DEFAULT (''),
-      "description" text NOT NULL DEFAULT (''),
+      "thumbnail" varchar NOT NULL DEFAULT '',
+      "description" text NOT NULL DEFAULT '',
       FOREIGN KEY ("title_slug") REFERENCES "titles"("slug") ON DELETE CASCADE
     )`);
     await queryRunner.query(`CREATE INDEX IF NOT EXISTS "IDX_episodes_title" ON "episodes" ("title_slug")`);
     await queryRunner.query(`CREATE TABLE IF NOT EXISTS "comments" (
-      "id" integer PRIMARY KEY AUTOINCREMENT NOT NULL,
+      "id" SERIAL PRIMARY KEY NOT NULL,
       "title_slug" varchar NOT NULL,
       "author" varchar NOT NULL,
-      "avatar" varchar NOT NULL DEFAULT (''),
+      "avatar" varchar NOT NULL DEFAULT '',
       "date" varchar NOT NULL,
-      "rating" real NOT NULL DEFAULT (0),
+      "rating" real NOT NULL DEFAULT 0,
       "text" text NOT NULL,
-      "likes" integer NOT NULL DEFAULT (0),
+      "likes" integer NOT NULL DEFAULT 0,
       FOREIGN KEY ("title_slug") REFERENCES "titles"("slug") ON DELETE CASCADE
     )`);
     await queryRunner.query(`CREATE INDEX IF NOT EXISTS "IDX_comments_title" ON "comments" ("title_slug")`);
     await queryRunner.query(`CREATE TABLE IF NOT EXISTS "contact_messages" (
-      "id" integer PRIMARY KEY AUTOINCREMENT NOT NULL,
+      "id" SERIAL PRIMARY KEY NOT NULL,
       "name" varchar NOT NULL,
       "email" varchar NOT NULL,
-      "subject" varchar NOT NULL DEFAULT (''),
+      "subject" varchar NOT NULL DEFAULT '',
       "message" text NOT NULL,
       "created_at" varchar NOT NULL
     )`);
     await queryRunner.query(`CREATE TABLE IF NOT EXISTS "reports" (
-      "id" integer PRIMARY KEY AUTOINCREMENT NOT NULL,
-      "link" varchar NOT NULL DEFAULT (''),
+      "id" SERIAL PRIMARY KEY NOT NULL,
+      "link" varchar NOT NULL DEFAULT '',
       "type" varchar NOT NULL,
       "description" text NOT NULL,
       "created_at" varchar NOT NULL
@@ -117,7 +117,7 @@ export class InitSchema1792000000000 implements MigrationInterface {
       "email" varchar NOT NULL UNIQUE,
       "name" varchar NOT NULL,
       "password_hash" varchar NOT NULL,
-      "role" varchar NOT NULL DEFAULT ('user'),
+      "role" varchar NOT NULL DEFAULT 'user',
       "created_at" integer NOT NULL
     )`);
     await queryRunner.query(`CREATE UNIQUE INDEX IF NOT EXISTS "IDX_users_email" ON "users" ("email")`);
@@ -152,25 +152,19 @@ export class InitSchema1792000000000 implements MigrationInterface {
     await queryRunner.query(`CREATE TABLE IF NOT EXISTS "watch_progress" (
       "user_id" varchar NOT NULL,
       "title_slug" varchar NOT NULL,
-      "seconds" integer NOT NULL DEFAULT (0),
+      "seconds" integer NOT NULL DEFAULT 0,
       "updated_at" integer NOT NULL,
       PRIMARY KEY ("user_id", "title_slug"),
       FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE CASCADE
     )`);
-    // Full-text search over Persian + latin titles.
-    await queryRunner.query(`CREATE VIRTUAL TABLE IF NOT EXISTS "titles_fts" USING fts5(slug UNINDEXED, title_fa, title_en)`);
-    await queryRunner.query(`CREATE TRIGGER IF NOT EXISTS "trg_titles_fts_insert" AFTER INSERT ON "titles" BEGIN
-      INSERT INTO "titles_fts" (slug, title_fa, title_en) VALUES (NEW."slug", NEW."title_fa", COALESCE(NEW."title_en", ''));
-    END`);
-    await queryRunner.query(`CREATE TRIGGER IF NOT EXISTS "trg_titles_fts_delete" AFTER DELETE ON "titles" BEGIN
-      DELETE FROM "titles_fts" WHERE slug = OLD."slug";
-    END`);
+    // Persian/latin title search uses a tsvector GIN index (no triggers needed).
+    await queryRunner.query(
+      `CREATE INDEX IF NOT EXISTS "IDX_titles_search" ON "titles" USING gin (to_tsvector('simple', "title_fa" || ' ' || coalesce("title_en", '')))`,
+    );
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.query(`DROP TRIGGER IF EXISTS "trg_titles_fts_delete"`);
-    await queryRunner.query(`DROP TRIGGER IF EXISTS "trg_titles_fts_insert"`);
-    await queryRunner.query(`DROP TABLE IF EXISTS "titles_fts"`);
+    await queryRunner.query(`DROP INDEX IF EXISTS "IDX_titles_search"`);
     for (const t of [
       'watch_progress',
       'watchlist_items',
@@ -188,7 +182,7 @@ export class InitSchema1792000000000 implements MigrationInterface {
       'actors',
       'genres',
     ]) {
-      await queryRunner.query(`DROP TABLE IF EXISTS "${t}"`);
+      await queryRunner.query(`DROP TABLE IF EXISTS "${t}" CASCADE`);
     }
   }
 }

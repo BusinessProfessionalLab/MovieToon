@@ -11,7 +11,6 @@
     "build": "astro build",
     "preview": "node --env-file-if-exists=.env ./node_modules/astro/astro.js preview",
     "start": "node --env-file-if-exists=.env ./scripts/start.mjs",
-    "admin:create": "node --env-file-if-exists=.env ./scripts/create-admin.mjs",
     "astro": "astro",
     "lint": "eslint src --ext .ts,.tsx,.astro",
     "format": "prettier --write \"src/**/*.{ts,tsx,astro,css}\""

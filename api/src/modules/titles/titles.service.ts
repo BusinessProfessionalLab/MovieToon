@@ -44,10 +44,10 @@ export class TitlesService {
     if (query.type) qb.andWhere('t.type = :type', { type: query.type });
     if (query.year) qb.andWhere('t.year = :year', { year: query.year });
     if (query.genre) {
-      qb.andWhere(`EXISTS (SELECT 1 FROM json_each(t.genres) WHERE value = :genre)`, { genre: query.genre });
+      qb.andWhere(`t.genres ? :genre`, { genre: query.genre });
     }
     if (query.country) {
-      qb.andWhere(`EXISTS (SELECT 1 FROM json_each(t.countries) WHERE value = :country)`, { country: query.country });
+      qb.andWhere(`t.countries ? :country`, { country: query.country });
     }
     if (query.minRating !== undefined) {
       qb.andWhere('t.imdb >= :minRating', { minRating: query.minRating });
@@ -78,12 +78,12 @@ export class TitlesService {
       throw new NotFoundException({ code: 'NOT_FOUND', error: 'عنوان پیدا نشد.' });
     }
     const collRows: { collection_slug: string }[] = await this.titles.manager.query(
-      'SELECT collection_slug FROM collection_titles WHERE title_slug = ?',
+      'SELECT collection_slug FROM collection_titles WHERE title_slug = $1',
       [slug],
     );
     const collectionSlugs = collRows.map((r) => r.collection_slug);
     const actorRows = await this.titles.manager.query(
-      'SELECT a.slug AS slug, a.name AS name, a.photo AS photo FROM title_actors ta JOIN actors a ON a.slug = ta.actor_slug WHERE ta.title_slug = ?',
+      'SELECT a.slug AS slug, a.name AS name, a.photo AS photo FROM title_actors ta JOIN actors a ON a.slug = ta.actor_slug WHERE ta.title_slug = $1',
       [slug],
     );
     const actors = (actorRows as { slug: string; name: string; photo: string }[]).map((a) => ({ slug: a.slug, name: a.name, photo: a.photo ?? '' }));
@@ -149,17 +149,17 @@ export class TitlesService {
     const base = await this.titles.findOne({ where: { slug } });
     if (!base) throw new NotFoundException({ code: 'NOT_FOUND', error: 'عنوان پیدا نشد.' });
     const peers = (await this.titles.manager.query(
-      `SELECT DISTINCT t.slug AS "slug", t.type AS "type", t.title_fa AS "titleFa", t.title_en AS "titleEn",
+      `SELECT t.slug AS "slug", t.type AS "type", t.title_fa AS "titleFa", t.title_en AS "titleEn",
               t.year AS "year", t.jalali_year AS "jalaliYear", t.imdb AS "rating", t.poster AS "poster",
-              t.genres AS "genres", t.added_at AS "createdAt" FROM titles t, json_each(t.genres) g
-       WHERE g.value IN (${base.genres.map(() => '?').join(',') || "'__none__'"}) AND t.slug != ?
-       ORDER BY t.imdb DESC LIMIT ?`,
-      [...base.genres, slug, Math.min(Math.max(1, limit), 20)],
+              t.genres AS "genres", t.added_at AS "createdAt" FROM titles t
+       WHERE t.slug != $1 AND t.genres ?| $2
+       ORDER BY t.imdb DESC LIMIT $3`,
+      [slug, base.genres, Math.min(Math.max(1, limit), 20)],
     )) as Record<string, unknown>[];
     return peers.map((t) =>
       this.summary({
         ...(t as object),
-        genres: typeof t['genres'] === 'string' ? (JSON.parse(t['genres'] as string) as string[]) : [],
+        genres: Array.isArray(t['genres']) ? (t['genres'] as string[]) : [],
       } as Title),
     );
   }
@@ -190,7 +190,7 @@ export class TitlesService {
 
   async collectionSlugsOf(slug: string): Promise<string[]> {
     const rows: { collection_slug: string }[] = await this.titles.manager.query(
-      'SELECT collection_slug FROM collection_titles WHERE title_slug = ?',
+      'SELECT collection_slug FROM collection_titles WHERE title_slug = $1',
       [slug],
     );
     return rows.map((r) => r.collection_slug);

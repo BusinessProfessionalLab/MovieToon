@@ -34,17 +34,17 @@ export class Title {
   @Column({ type: 'integer', nullable: true })
   episodesCount!: number | null;
 
-  @Column({ type: 'simple-json', default: '[]' })
+  @Column({ type: 'jsonb', default: '[]' })
   countries!: string[];
 
   /** Genre display names (Persian), same semantics as the frontend mock data. */
-  @Column({ type: 'simple-json', default: '[]' })
+  @Column({ type: 'jsonb', default: '[]' })
   genres!: string[];
 
   @Column({ type: 'varchar', default: '' })
   director!: string;
 
-  @Column({ type: 'simple-json', default: '[]' })
+  @Column({ type: 'jsonb', default: '[]' })
   cast!: string[];
 
   @Column({ type: 'text', default: '' })

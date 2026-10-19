@@ -11,11 +11,9 @@ import { PersianErrorFilter } from '../src/common/persian-error.filter';
 
 describe('MovieToon API (e2e)', () => {
   let app: INestApplication;
-  let dbPath: string;
 
   beforeAll(async () => {
-    dbPath = path.join(fs.mkdtempSync(path.join(os.tmpdir(), 'movietoon-test-')), 'test.sqlite');
-    process.env.DATABASE_PATH = dbPath;
+    process.env.DB_NAME = 'movietoon_test';
     process.env.JWT_ACCESS_SECRET = 'test-access-secret-00000000000000000000000000';
     process.env.JWT_REFRESH_SECRET = 'test-refresh-secret-0000000000000000000000000';
     process.env.ACCESS_TOKEN_TTL = '15m';
@@ -38,14 +36,13 @@ describe('MovieToon API (e2e)', () => {
     await ds.query(
       `INSERT INTO titles (slug, type, title_fa, title_en, year, jalali_year, runtime_min, seasons_count, episodes_count, countries, genres, director, "cast", description, imdb, site_score, age_rating, quality, dubbed, subtitled, poster, backdrop, views, added_at, featured, top10_rank, age_group, language)
        VALUES
-       ('film-1', 'movie', 'فیلم یک', 'Film One', 2024, 1403, 100, NULL, NULL, '["ایران"]', '["درام"]', 'کارگردان', '["بازیگر یک"]', 'توضیح', 8.5, 8.8, '+12', '۱۰۸۰p', 1, 1, '/p1.svg', '/b1.svg', 1000, '2024-01-05', 1, 1, NULL, 'فارسی'),
-       ('series-1', 'series', 'سریال یک', 'Series One', 2023, 1402, NULL, 1, 2, '["ایران"]', '["کمدی"]', 'کارگردان', '[]', 'توضیح', 7.0, 7.2, '+7', '۷۲۰p', 0, 1, '/p2.svg', '/b2.svg', 500, '2023-05-01', 0, 2, NULL, 'فارسی')`,
+       ('film-1', 'movie', 'فیلم یک', 'Film One', 2024, 1403, 100, NULL, NULL, '["ایران"]', '["درام"]', 'کارگردان', '["بازیگر یک"]', 'توضیح', 8.5, 8.8, '+12', '۱۰۸۰p', true, true, '/p1.svg', '/b1.svg', 1000, '2024-01-05', true, 1, NULL, 'فارسی'),
+       ('series-1', 'series', 'سریال یک', 'Series One', 2023, 1402, NULL, 1, 2, '["ایران"]', '["کمدی"]', 'کارگردان', '[]', 'توضیح', 7.0, 7.2, '+7', '۷۲۰p', false, true, '/p2.svg', '/b2.svg', 500, '2023-05-01', false, 2, NULL, 'فارسی')`,
     );
     await ds.query(`INSERT INTO title_actors (title_slug, actor_slug) VALUES ('film-1', 'a1')`);
     await ds.query(`INSERT INTO episodes (title_slug, season, number, title_fa, duration_min, thumbnail, description) VALUES ('series-1', 1, 1, 'قسمت اول', 45, '', ''), ('series-1', 1, 2, 'قسمت دوم', 47, '', '')`);
     await ds.query(`INSERT INTO collections (slug, name, description, cover) VALUES ('best', 'بهترین‌ها', 'd', '/b1.svg')`);
     await ds.query(`INSERT INTO collection_titles (collection_slug, title_slug) VALUES ('best', 'film-1')`);
-    await ds.query(`INSERT INTO titles_fts (slug, title_fa, title_en) VALUES ('film-1', 'فیلم یک', 'Film One'), ('series-1', 'سریال یک', 'Series One')`);
     await ds.query(`INSERT INTO comments (title_slug, author, avatar, date, rating, text, likes) VALUES ('film-1', 'مهمان', '', '2024-01-01', 8, 'عالی بود.', 3)`);
   });
 
