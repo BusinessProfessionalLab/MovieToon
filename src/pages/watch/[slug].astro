@@ -3,7 +3,7 @@ import Base from '../../layouts/Base.astro';
 import Breadcrumbs from '../../components/Breadcrumbs.astro';
 import TitleCard from '../../components/TitleCard.astro';
 import WatchPlayer from '../../islands/WatchPlayer.tsx';
-import { getRelated, getTitle, getTitleSlugs, routeFor } from '../../lib/api';
+import { getRelated, getTitle, getTitleLinks, getTitleSlugs, routeFor } from '../../lib/api';
 import { toFa } from '../../lib/fa';
 
 export async function getStaticPaths() {
@@ -19,6 +19,8 @@ const s = Number(Astro.url.searchParams.get('s') ?? 1);
 const e = Number(Astro.url.searchParams.get('e') ?? 1);
 const season = title.seasons?.find((x) => x.number === s) ?? title.seasons?.[0];
 const episode = season?.episodes.find((x) => x.number === e) ?? season?.episodes[0];
+const allLinks = await getTitleLinks(slug);
+const links = episode?.episodeId != null ? allLinks.filter((l) => l.episodeId === episode.episodeId) : allLinks.filter((l) => l.episodeId == null);
 const prevEp = season && episode && episode.number > 1 ? episode.number - 1 : null;
 const nextEp = season && episode && episode.number < season.episodes.length ? episode.number + 1 : null;
 ---
@@ -30,7 +32,22 @@ const nextEp = season && episode && episode.number < season.episodes.length ? ep
       {episode && season && (
         <p class="muted text-sm mb-4">فصل {toFa(season.number)} • قسمت {toFa(episode.number)}: {episode.title}</p>
       )}
-      <WatchPlayer slug={title.slug} title={title.titleFa} poster={title.backdrop} client:load />
+      <WatchPlayer slug={title.slug} title={title.titleFa} poster={title.backdrop} links={links} client:load />
+      {links.length > 0 && (
+        <div class="card p-4 mt-4" aria-label="دانلود">
+          <h2 class="font-black text-sm mb-3">دانلود با کیفیت‌های مختلف</h2>
+          <ul class="grid gap-2">
+            {links.map((l) => (
+              <li>
+                <a href={l.url} class="btn-ghost text-sm w-full flex items-center justify-between" download>
+                  <span>{l.label || l.quality}</span>
+                  {l.size && l.size !== '0' && <span class="muted text-xs">{l.size}</span>}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
       {season && episode && (
         <div class="flex items-center justify-between mt-4">
           {nextEp ? (

@@ -1,47 +1,64 @@
 ---
 import { NAV } from '../lib/site';
+
+const path = Astro.url.pathname;
+const isActive = (href: string) => (href === '/' ? path === '/' : path === href || path.startsWith(href + '/'));
 ---
-<header class="site-header sticky top-0 z-40 border-b" style="border-color: var(--border)">
-  <div class="mx-auto max-w-7xl px-4 flex items-center gap-3 h-16">
+<header class="hdr sticky top-3 z-40 px-3 sm:px-4" aria-label="سربرگ سایت">
+  <div class="hdr-pill mx-auto max-w-7xl flex items-center gap-1.5 sm:gap-3 ps-2.5 sm:ps-4 pe-2 sm:pe-3 py-2">
     <button
       id="menu-btn"
-      class="md:hidden p-2 rounded-lg border"
-      style="border-color: var(--border)"
+      class="hdr-icon inline-flex md:hidden shrink-0"
       aria-label="باز کردن منو"
       aria-expanded="false"
     >
-      ☰
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16" /></svg>
     </button>
-    <a href="/" class="flex items-center gap-2 font-black text-xl" aria-label="مووی‌تون - صفحه اصلی">
-      <span class="inline-flex w-9 h-9 items-center justify-center rounded-xl text-white font-black" style="background: var(--brand)">م</span>
-      <span>مووی‌تون</span>
+    <a href="/" class="flex items-center gap-2 shrink-0" aria-label="مووی‌تون - صفحه اصلی">
+      <img src="/images/logo.svg" alt="لوگوی مووی‌تون" width="36" height="36" class="hdr-logo" />
+      <span class="hdr-wordmark font-black text-lg sm:text-xl text-white">مووی‌تون</span>
     </a>
-    <nav class="hidden md:flex items-center gap-5 text-sm font-medium" aria-label="ناوبری اصلی">
-      {NAV.map((n) => <a class="hover:opacity-80" href={n.href}>{n.label}</a>)}
+    <nav class="hidden lg:flex items-center gap-5 text-sm font-medium mx-auto" aria-label="ناوبری اصلی">
+      {NAV.map((n) => (
+        <a href={n.href} aria-current={isActive(n.href) ? 'page' : undefined} class:list={['hdr-link', isActive(n.href) && 'hdr-link-active']}>{n.label}</a>
+      ))}
     </nav>
-    <div class="ms-auto flex items-center gap-2">
-      <a href="/search" class="p-2 rounded-lg border" style="border-color: var(--border)" aria-label="جستجو">🔍</a>
-      <button id="theme-btn" class="p-2 rounded-lg border" style="border-color: var(--border)" aria-label="تغییر تم">🌙</button>
-      <a data-guest href="/login" class="hidden sm:inline-flex btn-ghost text-sm">ورود</a>
-      <a data-guest href="/register" class="hidden sm:inline-flex btn-primary text-sm">ثبت‌نام</a>
-      <a data-member href="/profile" class="hidden sm:inline-flex btn-ghost text-sm">حساب من</a>
-      <a data-member href="/profile" class="hidden p-2 rounded-lg border sm:hidden" style="border-color: var(--border)" aria-label="حساب کاربری">👤</a>
+    <nav class="hidden md:flex lg:hidden items-center gap-4 text-[13px] font-medium mx-auto" aria-label="ناوبری اصلی">
+      {NAV.slice(0, 5).map((n) => (
+        <a href={n.href} aria-current={isActive(n.href) ? 'page' : undefined} class:list={['hdr-link', isActive(n.href) && 'hdr-link-active']}>{n.label}</a>
+      ))}
+    </nav>
+    <div class="ms-auto md:ms-0 lg:ms-auto flex items-center gap-1.5 sm:gap-2 shrink-0">
+      <a href="/search" class="hdr-icon inline-flex" aria-label="جستجو">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7" /><path d="m20 20-3.5-3.5" /></svg>
+      </a>
+      <button id="theme-btn" class="hdr-icon inline-flex" aria-label="تغییر تم">
+        <svg id="icon-moon" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M20.5 14.5A8.5 8.5 0 0 1 9.5 3.5a.75.75 0 0 0-.96-.96A10 10 0 1 0 21.46 15.46a.75.75 0 0 0-.96-.96Z" /></svg>
+        <svg id="icon-sun" class="hidden" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4" /><path d="M12 2v2m0 16v2M4.9 4.9l1.4 1.4m11.4 11.4 1.4 1.4M2 12h2m16 0h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" /></svg>
+      </button>
+      <div data-guest class="hdr-user" id="user-menu">
+        <button
+          id="user-btn"
+          class="hdr-icon inline-flex"
+          aria-label="حساب کاربری"
+          aria-haspopup="menu"
+          aria-expanded="false"
+        >
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="8" r="4" /><path d="M4 21c0-4 3.6-6.5 8-6.5s8 2.5 8 6.5" /></svg>
+        </button>
+        <div class="hdr-pop" role="menu" aria-label="ورود یا ثبت‌نام">
+          <a href="/login" role="menuitem" class="hdr-pop-link">ورود</a>
+          <a href="/register" role="menuitem" class="hdr-pop-link hdr-pop-primary">ثبت‌نام</a>
+        </div>
+      </div>
+      <a data-member href="/profile" class="hdr-icon inline-flex hidden" aria-label="حساب من">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="8" r="4" /><path d="M4 21c0-4 3.6-6.5 8-6.5s8 2.5 8 6.5" /></svg>
+      </a>
     </div>
   </div>
-  <div id="mobile-drawer" class="md:hidden hidden border-t px-4 py-3" style="border-color: var(--border)">
-    <nav class="flex flex-col gap-1" aria-label="منوی موبایل">
-      {NAV.map((n) => <a class="py-2 border-b last:border-0" style="border-color: var(--border)" href={n.href}>{n.label}</a>)}
-      <div class="flex gap-2 pt-3">
-        <a data-guest href="/login" class="btn-ghost text-sm flex-1 text-center">ورود</a>
-        <a data-guest href="/register" class="btn-primary text-sm flex-1 text-center">ثبت‌نام</a>
-        <a data-member href="/profile" class="hidden btn-ghost text-sm flex-1 text-center">حساب من</a>
-      </div>
-    </nav>
-  </div>
-  <div class="md:hidden border-t" style="border-color: var(--border)">
-    <nav class="mx-auto max-w-7xl px-2 flex gap-1 overflow-x-auto no-scrollbar text-xs py-2" aria-label="ناوبری موبایل">
-      <a href="/" class="px-3 py-2 rounded-lg whitespace-nowrap">خانه</a>
-      {NAV.slice(0, 5).map((n) => <a href={n.href} class="px-3 py-2 rounded-lg whitespace-nowrap">{n.label}</a>)}
+  <div id="mobile-drawer" class="md:hidden hidden mx-auto max-w-7xl mt-2 hdr-drawer px-4 py-3">
+    <nav class="flex flex-col" aria-label="منوی موبایل">
+      {NAV.map((n) => <a class="hdr-drawer-link" href={n.href}>{n.label}</a>)}
     </nav>
   </div>
 </header>
@@ -53,16 +70,39 @@ import { NAV } from '../lib/site';
     btn.setAttribute('aria-expanded', String(!open));
   });
   const themeBtn = document.getElementById('theme-btn');
+  const moon = document.getElementById('icon-moon');
+  const sun = document.getElementById('icon-sun');
   const syncIcon = () => {
-    const t = document.documentElement.getAttribute('data-theme');
-    if (themeBtn) themeBtn.textContent = t === 'dark' ? '🌙' : '☀️';
+    const dark = document.documentElement.getAttribute('data-theme') !== 'light';
+    moon?.classList.toggle('hidden', !dark);
+    sun?.classList.toggle('hidden', dark);
   };
   syncIcon();
   themeBtn?.addEventListener('click', () => {
-    const cur = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+    const cur = document.documentElement.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
     document.documentElement.setAttribute('data-theme', cur);
     try { localStorage.setItem('movietoon-theme', cur); } catch {}
     syncIcon();
+  });
+  // User tooltip: hover/focus handles desktop via CSS; click toggles for touch.
+  const userMenu = document.getElementById('user-menu');
+  const userBtn = document.getElementById('user-btn');
+  userBtn?.addEventListener('click', (ev) => {
+    ev.stopPropagation();
+    const open = userMenu?.classList.toggle('open');
+    userBtn.setAttribute('aria-expanded', String(Boolean(open)));
+  });
+  document.addEventListener('click', (ev) => {
+    if (userMenu?.classList.contains('open') && !userMenu.contains(ev.target)) {
+      userMenu.classList.remove('open');
+      userBtn?.setAttribute('aria-expanded', 'false');
+    }
+  });
+  document.addEventListener('keydown', (ev) => {
+    if (ev.key === 'Escape') {
+      userMenu?.classList.remove('open');
+      userBtn?.setAttribute('aria-expanded', 'false');
+    }
   });
 </script>
 <script is:inline>
@@ -85,15 +125,133 @@ import { NAV } from '../lib/site';
   })();
 </script>
 <style>
-  .site-header { background: rgba(9, 10, 16, .78); backdrop-filter: blur(22px) saturate(150%); border-color: rgba(255,255,255,.08) !important; }
-  .site-header > div:first-child { height: 4.5rem; }
-  .site-header a[aria-label*="ØµÙØ­Ù‡"] > span:first-child { box-shadow: 0 0 26px rgba(251,69,103,.48); border-radius: 13px; }
-  .site-header nav a { color: rgba(246,244,249,.78); transition: color .2s ease, opacity .2s ease; }
-  .site-header nav a:hover { color: #fff; opacity: 1; }
-  .site-header button, .site-header .ms-auto > a { border-color: rgba(255,255,255,.11) !important; background: rgba(255,255,255,.045); transition: background .2s ease, border-color .2s ease, transform .2s ease; }
-  .site-header button:hover, .site-header .ms-auto > a:hover { background: rgba(255,255,255,.1); border-color: rgba(255,255,255,.24) !important; transform: translateY(-1px); }
-  .site-header .ms-auto > a.btn-primary { background: linear-gradient(135deg,#ff5a76,#d91d4b); }
-  .site-header #mobile-drawer { background: rgba(10,11,17,.96); }
-  .site-header > div:last-child { border-color: rgba(255,255,255,.07) !important; background: rgba(255,255,255,.018); }
-  @media (prefers-reduced-motion: reduce) { .site-header * { transition: none !important; } }
+  .hdr { pointer-events: none; }
+  /* Auth toggling must win over responsive display utilities
+     (e.g. `hidden sm:inline-flex` would otherwise show on desktop).
+     Scoped to auth elements only so nav `hidden lg:flex` keeps working. */
+  .hdr [data-guest].hidden, .hdr [data-member].hidden { display: none !important; }
+  .hdr-pill, .hdr-drawer { pointer-events: auto; }
+  .hdr-pill {
+    position: relative;
+    border-radius: 999px;
+    background: linear-gradient(180deg, rgba(26, 22, 38, .82), rgba(13, 12, 24, .86));
+    -webkit-backdrop-filter: blur(22px) saturate(150%);
+    backdrop-filter: blur(22px) saturate(150%);
+    border: 1px solid rgba(255, 255, 255, .1);
+    box-shadow:
+      0 10px 40px rgba(0, 0, 0, .55),
+      0 0 32px rgba(255, 45, 96, .16),
+      inset 0 1px 0 rgba(255, 255, 255, .08);
+  }
+  .hdr-pill::after {
+    content: "";
+    position: absolute;
+    inset-inline: 24px;
+    bottom: -1px;
+    height: 2px;
+    border-radius: 999px;
+    background: linear-gradient(90deg, transparent, rgba(255, 45, 96, .85) 30%, rgba(255, 45, 96, .85) 70%, transparent);
+    box-shadow: 0 0 18px 2px rgba(255, 45, 96, .55);
+    pointer-events: none;
+  }
+  .hdr-logo {
+    width: 2.25rem;
+    height: 2.25rem;
+    border-radius: .8rem;
+    object-fit: contain;
+    filter: drop-shadow(0 0 14px rgba(251, 69, 103, .55));
+  }
+  @media (max-width: 399px) { .hdr-wordmark { display: none; } }
+  @media (min-width: 1024px) {
+    .hdr-logo { width: 3.5rem; height: 3.5rem; border-radius: 1.1rem; }
+  }
+  .hdr-link { color: rgba(246, 244, 249, .78); transition: color .2s ease; white-space: nowrap; }
+  .hdr-link:hover { color: #fff; }
+  .hdr-link-active { color: #fff; font-weight: 700; }
+  .hdr-icon {
+    align-items: center;
+    justify-content: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 999px;
+    color: rgba(246, 244, 249, .85);
+    border: 1px solid rgba(255, 255, 255, .12);
+    background: rgba(255, 255, 255, .045);
+    transition: background .2s ease, border-color .2s ease, transform .2s ease;
+  }
+  .hdr-icon:hover { background: rgba(255, 255, 255, .1); border-color: rgba(255, 255, 255, .24); transform: translateY(-1px); }
+  .hdr-btn {
+    align-items: center;
+    justify-content: center;
+    height: 2.5rem;
+    padding-inline: 1.35rem;
+    border-radius: 999px;
+    font-size: .875rem;
+    font-weight: 700;
+    color: rgba(246, 244, 249, .9);
+    border: 1px solid rgba(255, 255, 255, .14);
+    background: rgba(255, 255, 255, .05);
+    transition: background .2s ease, border-color .2s ease, transform .2s ease, box-shadow .2s ease;
+    white-space: nowrap;
+  }
+  .hdr-btn:hover { background: rgba(255, 255, 255, .11); border-color: rgba(255, 255, 255, .26); transform: translateY(-1px); }
+  .hdr-user { position: relative; }
+  .hdr-pop {
+    position: absolute;
+    top: calc(100% + 10px);
+    inset-inline-end: 0;
+    min-width: 10rem;
+    display: flex;
+    flex-direction: column;
+    gap: .4rem;
+    padding: .5rem;
+    border-radius: 1.1rem;
+    background: rgba(13, 12, 24, .96);
+    -webkit-backdrop-filter: blur(22px);
+    backdrop-filter: blur(22px);
+    border: 1px solid rgba(255, 255, 255, .12);
+    box-shadow: 0 14px 44px rgba(0, 0, 0, .6), 0 0 24px rgba(255, 45, 96, .14);
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-6px);
+    transition: opacity .18s ease, transform .18s ease, visibility .18s;
+    z-index: 50;
+  }
+  .hdr-user:hover .hdr-pop, .hdr-user:focus-within .hdr-pop, .hdr-user.open .hdr-pop {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+  }
+  .hdr-pop-link {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 2.4rem;
+    border-radius: .8rem;
+    font-size: .85rem;
+    font-weight: 700;
+    color: rgba(246, 244, 249, .9);
+    border: 1px solid rgba(255, 255, 255, .12);
+    background: rgba(255, 255, 255, .05);
+    transition: background .15s ease;
+  }
+  .hdr-pop-link:hover { background: rgba(255, 255, 255, .11); }
+  .hdr-pop-primary {
+    color: #fff;
+    border-color: transparent;
+    background: linear-gradient(135deg, #ff5a76, #d91d4b);
+    box-shadow: 0 4px 20px rgba(255, 45, 96, .45);
+  }
+  .hdr-pop-primary:hover { background: linear-gradient(135deg, #ff6a84, #e52755); }
+  .hdr-drawer {
+    border-radius: 1.5rem;
+    background: rgba(13, 12, 24, .94);
+    -webkit-backdrop-filter: blur(22px);
+    backdrop-filter: blur(22px);
+    border: 1px solid rgba(255, 255, 255, .1);
+    box-shadow: 0 10px 40px rgba(0, 0, 0, .55);
+  }
+  .hdr-drawer-link { padding-block: .65rem; border-bottom: 1px solid rgba(255, 255, 255, .07); color: rgba(246, 244, 249, .85); font-size: .9rem; }
+  .hdr-drawer-link:last-of-type { border-bottom: 0; }
+  @media (prefers-reduced-motion: reduce) { .hdr * { transition: none !important; } }
 </style>

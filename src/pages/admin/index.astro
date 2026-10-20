@@ -1,12 +1,56 @@
 ---
 import Base from '../../layouts/Base.astro';
+import HeroPicker from '../../islands/HeroPicker.tsx';
 
 const user = Astro.locals.user;
 if (!user) return Astro.redirect('/login?next=%2Fadmin');
 if (user.role !== 'admin') return new Response('Forbidden', { status: 403 });
+
+const sections = [
+  {
+    id: 'sec-hero',
+    title: 'بخش Hero',
+    desc: 'عنوان‌هایی که اینجا چک می‌زنی توی اسلایدر Hero صفحه اصلی نمایش داده می‌شن. برای حذف، چک رو بردار و «ثبت» بزن.',
+    kind: 'hero',
+  },
+  {
+    id: 'sec-animation',
+    title: 'انیمیشن‌های محبوب',
+    desc: 'عنوان‌هایی که اینجا چک می‌زنی توی بخش «انیمیشن‌های محبوب» صفحه اصلی نمایش داده می‌شن. برای حذف، چک رو بردار و «ثبت» بزن.',
+    kind: 'animation',
+  },
+  {
+    id: 'sec-top10',
+    title: '۱۰ عنوان برتر امروز',
+    desc: 'عنوان‌هایی که اینجا چک می‌زنی (حداکثر ۱۰ تا) توی بخش «۱۰ عنوان برتر امروز» نمایش داده می‌شن — رتبه بر اساس ترتیب انتخابه. برای حذف، چک رو بردار و «ثبت» بزن.',
+    kind: 'top10',
+  },
+] as const;
 ---
 <Base title="پنل ادمین" description="پنل ادمین مووی‌تون" noindex>
   <main class="mx-auto max-w-7xl px-4 py-10 min-h-[60vh]">
-    <h1 class="font-black text-2xl">پنل ادمین</h1>
+    <h1 class="font-black text-2xl mb-6">پنل ادمین</h1>
+
+    <div class="grid gap-4">
+      {sections.map((s) => (
+        <details class="card overflow-hidden admin-collapse" id={s.id}>
+          <summary class="flex items-center justify-between gap-3 p-4 md:p-5 cursor-pointer font-black text-lg select-none">
+            <span>{s.title}</span>
+            <svg class="collapse-chevron" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6" /></svg>
+          </summary>
+          <div class="border-t px-4 md:px-5 py-4" style="border-color: var(--border)">
+            <p class="muted text-sm mb-4">{s.desc}</p>
+            <HeroPicker kind={s.kind} client:load />
+          </div>
+        </details>
+      ))}
+    </div>
   </main>
 </Base>
+
+<style>
+  .admin-collapse > summary { list-style: none; }
+  .admin-collapse > summary::-webkit-details-marker { display: none; }
+  .collapse-chevron { transition: transform .2s ease; }
+  .admin-collapse[open] .collapse-chevron { transform: rotate(180deg); }
+</style>

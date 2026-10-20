@@ -3,6 +3,8 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ENTITIES } from './entities';
 import { InitSchema1793000000000 } from './migrations/1793000000000-init-schema';
+import { SeekoImport1793100000000 } from './migrations/1793100000000-seeko-import';
+import { HomepagePicks1793200000000 } from './migrations/1793200000000-homepage-picks';
 import { SnakeNamingStrategy } from './naming.strategy';
 
 @Module({
@@ -18,7 +20,7 @@ import { SnakeNamingStrategy } from './naming.strategy';
         password: config.get<string>('DB_PASSWORD', ''),
         database: config.get<string>('DB_NAME', 'movietoon'),
         entities: ENTITIES,
-        migrations: [InitSchema1793000000000],
+        migrations: [InitSchema1793000000000, SeekoImport1793100000000, HomepagePicks1793200000000],
         namingStrategy: new SnakeNamingStrategy(),
         synchronize: false,
         migrationsRun: false,

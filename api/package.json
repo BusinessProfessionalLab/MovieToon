@@ -19,7 +19,8 @@
     "test:unit": "jest --runInBand",
     "db:migrate": "npm run build && typeorm -d dist/database/data-source.js migration:run",
     "db:generate": "typeorm -d src/database/data-source.ts migration:generate -p src/database/migrations/Auto",
-    "db:seed": "tsx seed/seed.ts"
+    "db:seed": "tsx seed/seed.ts",
+    "import:seeko": "node --env-file=.env scripts/import-seeko.mjs --phase=all --concurrency=24"
   },
   "dependencies": {
     "@nestjs/common": "^11.0.0",

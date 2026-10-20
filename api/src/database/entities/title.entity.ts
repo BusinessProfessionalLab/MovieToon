@@ -93,6 +93,29 @@ export class Title {
   @Column({ type: 'varchar', default: 'فارسی' })
   language!: string;
 
+  /** seeko external UUID (movie id or series t_id). Same as slug for imported rows. */
+  @Column({ type: 'varchar', nullable: true, unique: true })
+  externalId!: string | null;
+
+  /** IMDb id like tt31192372 (may be empty). */
+  @Column({ type: 'varchar', default: '' })
+  imdbId!: string;
+
+  /** upera numeric id used to build traffic links. */
+  @Column({ type: 'varchar', default: '' })
+  uperaId!: string;
+
+  /** 'movie' | 'series' as classified from seeko. */
+  @Column({ type: 'varchar', default: '' })
+  sourceType!: string;
+
+  @Column({ type: 'boolean', default: false })
+  persian!: boolean;
+
+  /** Admin-picked for the homepage "popular animations" section. */
+  @Column({ type: 'boolean', default: false })
+  homeAnimation!: boolean;
+
   @ManyToMany(() => Actor, { cascade: false })
   @JoinTable({
     name: 'title_actors',

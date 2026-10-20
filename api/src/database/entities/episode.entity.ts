@@ -30,4 +30,18 @@ export class Episode {
 
   @Column({ type: 'text', default: '' })
   description!: string;
+
+  /** seeko episode UUID. */
+  @Column({ type: 'varchar', nullable: true, unique: true })
+  externalId!: string | null;
+
+  /** parent series UUID (series_id / t_id). */
+  @Column({ type: 'varchar', default: '' })
+  externalSeriesId!: string;
+
+  @Column({ type: 'varchar', default: '' })
+  uperaId!: string;
+
+  @Column({ type: 'varchar', default: '' })
+  masterFile!: string;
 }

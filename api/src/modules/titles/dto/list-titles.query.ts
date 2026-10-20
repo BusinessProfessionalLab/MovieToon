@@ -50,6 +50,11 @@ export class ListTitlesQuery {
   featured?: boolean;
 
   @IsOptional()
+  @Transform(({ value }) => value === true || value === 'true')
+  @IsBoolean({ message: 'پرچم انیمیشن محبوب معتبر نیست.' })
+  homeAnimation?: boolean;
+
+  @IsOptional()
   @Type(() => Number)
   @IsInt({ message: 'شماره صفحه باید عدد صحیح باشد.' })
   @Min(1, { message: 'شماره صفحه معتبر نیست.' })

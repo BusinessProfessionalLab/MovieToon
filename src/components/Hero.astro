@@ -12,6 +12,7 @@ export interface HeroItem {
   backdrop: string;
   detailHref: string;
   watchHref: string;
+  type?: string;
 }
 
 interface Props {
@@ -20,6 +21,14 @@ interface Props {
 
 const { items } = Astro.props;
 const first = items[0];
+const eyebrowFor = (it: HeroItem) =>
+  it.type === 'series' ? 'سریال پیشنهادی' : it.type === 'animation' ? 'انیمیشن پیشنهادی' : 'فیلم پیشنهادی';
+/** Responsive variants of upera thumb URLs (w/h params), with fallback to plain src. */
+const srcSetFor = (url: string): string | null => {
+  if (!url || !url.includes('thumb.upera.tv/thumb?') || !url.includes('w=1120')) return null;
+  const v = (w: number, h: number) => url.replace('w=1120', `w=${w}`).replace('h=576', `h=${h}`);
+  return `${v(640, 329)} 640w, ${v(1120, 576)} 1120w, ${v(1920, 987)} 1920w`;
+};
 ---
 {first && (
   <section class="hero" data-hero aria-label="پیشنهاد ویژه">
@@ -28,6 +37,8 @@ const first = items[0];
         <div class={`hero-slide${i === 0 ? ' is-active' : ''}`} data-slide={i} aria-hidden={i === 0 ? 'false' : 'true'}>
           <img
             src={it.backdrop}
+            srcset={srcSetFor(it.backdrop) ?? undefined}
+            sizes={srcSetFor(it.backdrop) ? '(max-width: 767px) 100vw, 1280px' : undefined}
             alt=""
             loading={i === 0 ? 'eager' : 'lazy'}
             decoding="async"
@@ -42,78 +53,47 @@ const first = items[0];
     </div>
 
     <div class="hero-content">
-      <p class="hero-eyebrow">
-        <span class="hero-live-dot" aria-hidden="true"></span>
-        پیشنهاد ویژه مووی‌تون
-      </p>
       {items.map((it, i) => (
         <div class={`hero-copy${i === 0 ? ' is-active' : ''}`} data-copy={i} aria-hidden={i === 0 ? 'false' : 'true'}>
+          <p class="hero-eyebrow">{eyebrowFor(it)}</p>
           <h1 class="hero-title">{it.titleFa}</h1>
-          <p class="hero-en" dir="ltr">{it.titleEn}</p>
-          <ul class="hero-chips" aria-label="مشخصات">
-            <li class="chip chip-rating">
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="var(--gold)" aria-hidden="true">
-                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
-              </svg>
-              {it.rating}
-            </li>
-            <li class="chip">{it.metaLine}</li>
-            <li class="chip">{it.genres.slice(0, 3).join(' • ')}</li>
-            <li class="chip chip-quality">{it.quality}</li>
-            {it.dubbed && <li class="chip chip-dubbed">دوبله فارسی</li>}
-          </ul>
           <p class="hero-desc">{it.description}</p>
           <div class="hero-actions">
-            <a href={it.watchHref} class="btn-primary hero-btn">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+            <a href={it.watchHref} class="hero-cta">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
                 <polygon points="6 3 20 12 6 21 6 3" />
               </svg>
-              تماشا
+              تماشای فیلم
             </a>
-            <a href={it.detailHref} class="btn-ghost hero-btn hero-btn-ghost">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-                <circle cx="12" cy="12" r="10" />
-                <path d="M12 16v-4m0-4h.01" stroke-linecap="round" />
-              </svg>
-              جزئیات
-            </a>
-            <button
-              type="button"
-              class="hero-later"
-              data-watchlater={it.slug}
-              data-title={it.titleFa}
-              aria-pressed="false"
-              aria-label={`افزودن ${it.titleFa} به تماشای بعدی`}
-            >
-              <svg class="icon-plus" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true">
-                <path d="M12 5v14M5 12h14" stroke-linecap="round" />
-              </svg>
-              <svg class="icon-check" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true">
-                <path d="M20 6 9 17l-5-5" stroke-linecap="round" stroke-linejoin="round" />
-              </svg>
-              <span class="hero-later-text">تماشای بعدی</span>
-            </button>
           </div>
+          {items.length > 1 && (
+            <div class="hero-dots" role="tablist" aria-label="انتخاب عنوان ویژه">
+              {items.map((d, k) => (
+                <button
+                  type="button"
+                  role="tab"
+                  aria-selected={k === 0 ? 'true' : 'false'}
+                  aria-label={`نمایش ${d.titleFa}`}
+                  class={`hero-dot${k === 0 ? ' is-active' : ''}`}
+                  data-dot={k}
+                />
+              ))}
+            </div>
+          )}
         </div>
       ))}
-
-      {items.length > 1 && (
-        <div class="hero-dots" role="tablist" aria-label="انتخاب عنوان ویژه">
-          {items.map((it, i) => (
-            <button
-              type="button"
-              role="tab"
-              aria-selected={i === 0 ? 'true' : 'false'}
-              aria-label={`نمایش ${it.titleFa}`}
-              class={`hero-dot${i === 0 ? ' is-active' : ''}`}
-              data-dot={i}
-            >
-              <span class="hero-dot-fill" aria-hidden="true"></span>
-            </button>
-          ))}
-        </div>
-      )}
     </div>
+
+    {items.length > 1 && (
+      <>
+        <button type="button" class="hero-arrow hero-arrow-next" data-next aria-label="عنوان بعدی">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 6 6 6-6 6" /></svg>
+        </button>
+        <button type="button" class="hero-arrow hero-arrow-prev" data-prev aria-label="عنوان قبلی">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 6-6 6 6 6" /></svg>
+        </button>
+      </>
+    )}
   </section>
 )}
 
@@ -121,267 +101,157 @@ const first = items[0];
   .hero {
     position: relative;
     overflow: hidden;
-    border-radius: 1.4rem;
-    border: 1px solid var(--border);
-    background: var(--card);
-    min-height: 620px;
+    border-radius: 1.8rem;
+    border: 1px solid rgba(255, 255, 255, .09);
+    background: #101018;
+    height: clamp(400px, 52vh, 480px);
+    box-shadow: 0 30px 90px rgba(0, 0, 0, .45), 0 0 70px rgba(130, 36, 86, .12);
+    isolation: isolate;
   }
-  @media (min-width: 768px) {
-    .hero {
-      min-height: 85vh;
-    }
-  }
-  /* Backdrop stack (desktop: full-bleed behind content). */
-  .hero-media {
-    position: relative;
-    height: 36vh;
-    min-height: 250px;
-  }
-  @media (min-width: 768px) {
-    .hero-media {
-      position: absolute;
-      inset: 0;
-      height: auto;
-      min-height: 0;
-    }
-  }
-  .hero-slide {
-    position: absolute;
-    inset: 0;
-    opacity: 0;
-    transition: opacity 0.8s ease;
-  }
-  .hero-slide.is-active {
-    opacity: 1;
-    z-index: 1;
-  }
-  .hero-img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-  }
-  /* Slow Ken Burns drift on the visible backdrop (transform only). */
-  .hero-slide.is-active .hero-img {
-    animation: kenburns 20s ease-in-out infinite alternate;
-  }
+  .hero-media, .hero-slide { position: absolute; inset: 0; }
+  .hero-slide { opacity: 0; transition: opacity .8s ease; }
+  .hero-slide.is-active { opacity: 1; z-index: 1; }
+  .hero-img { width: 100%; height: 100%; object-fit: cover; object-position: center 30%; filter: saturate(.9) contrast(1.05); }
+  .hero-slide.is-active .hero-img { animation: kenburns 20s ease-in-out infinite alternate; }
   @keyframes kenburns {
     from { transform: scale(1) translate(0, 0); }
-    to { transform: scale(1.12) translate(-2%, 1.5%); }
+    to { transform: scale(1.1) translate(-2%, 1.5%); }
   }
-  /* Cinematic shade: heavy on the RTL (right) side where the text sits. */
   .hero-shade {
     position: absolute;
     inset: 0;
     z-index: 2;
     background:
-      linear-gradient(to top, var(--card) 2%, transparent 46%),
-      linear-gradient(to left, rgba(8, 8, 16, 0.94) 0%, rgba(8, 8, 16, 0.55) 46%, transparent 78%);
-  }
-  @media (min-width: 768px) {
-    .hero-shade {
-      background:
-        linear-gradient(to top, rgba(8, 8, 16, 0.92) 4%, transparent 52%),
-        linear-gradient(to left, rgba(8, 8, 16, 0.94) 0%, rgba(8, 8, 16, 0.6) 44%, transparent 76%);
-    }
+      linear-gradient(to top, rgba(8, 8, 14, .55) 0%, transparent 40%),
+      linear-gradient(to left, rgba(10, 8, 18, .96) 0%, rgba(10, 8, 18, .78) 34%, rgba(10, 8, 18, .25) 62%, transparent 85%);
   }
   .hero-content {
-    position: relative;
+    position: absolute;
     z-index: 3;
+    inset-block: 0;
+    inset-inline-end: 0;
+    width: min(500px, 48%);
     display: flex;
     flex-direction: column;
-    justify-content: flex-end;
-    gap: 0.55rem;
-    padding: 1.25rem 1.25rem 1.5rem;
+    justify-content: center;
+    padding: 2.5rem 3.25rem;
     color: #fff;
+    text-align: start;
   }
-  @media (min-width: 768px) {
-    .hero-content {
-      position: absolute;
-      inset-inline-end: 0;
-      inset-block: 0;
-      width: min(560px, 52%);
-      justify-content: center;
-      padding: 3rem;
-    }
-  }
-  .hero-eyebrow {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.45rem;
-    font-size: 0.75rem;
-    font-weight: 700;
-    color: #ffd9de;
-  }
-  .hero-live-dot {
-    width: 0.5rem;
-    height: 0.5rem;
-    border-radius: 50%;
-    background: var(--brand);
-    box-shadow: 0 0 12px var(--brand);
-  }
-  .hero-copy {
-    display: none;
-    flex-direction: column;
-    gap: 0.55rem;
-  }
-  .hero-copy.is-active {
-    display: flex;
-    animation: copy-in 0.55s ease both;
-  }
+  .hero-copy { display: none; flex-direction: column; align-items: flex-start; gap: .7rem; }
+  .hero-copy.is-active { display: flex; animation: copy-in .55s ease both; }
   @keyframes copy-in {
     from { opacity: 0; transform: translateY(14px); }
     to { opacity: 1; transform: none; }
   }
+  .hero-eyebrow {
+    margin: 0;
+    font-size: .8rem;
+    font-weight: 700;
+    color: #ff8ba0;
+  }
   .hero-title {
-    font-size: clamp(1.9rem, 4.5vw, 3.4rem);
+    margin: 0;
+    font-size: 2rem;
     font-weight: 900;
-    line-height: 1.25;
+    line-height: 1.5;
     text-wrap: balance;
   }
-  .hero-en {
-    font-size: 0.8rem;
-    opacity: 0.65;
-    text-align: end;
-    letter-spacing: 0.04em;
-  }
-  .hero-chips {
-    list-style: none;
-    margin: 0.35rem 0 0;
-    padding: 0;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.45rem;
-  }
-  .chip {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.35rem;
-    font-size: 0.75rem;
-    font-weight: 700;
-    padding: 0.32rem 0.8rem;
-    border-radius: 999px;
-    color: #fff;
-    background: rgba(255, 255, 255, 0.12);
-    border: 1px solid rgba(255, 255, 255, 0.22);
-    backdrop-filter: blur(8px);
-  }
-  .chip-rating {
-    color: #ffd98a;
-  }
-  .chip-quality {
-    background: var(--brand);
-    border-color: transparent;
-  }
-  .chip-dubbed {
-    background: rgba(20, 184, 166, 0.25);
-    border-color: rgba(20, 184, 166, 0.6);
-  }
   .hero-desc {
-    font-size: 0.9rem;
-    line-height: 2;
-    opacity: 0.88;
+    margin: 0;
+    font-size: .88rem;
+    line-height: 2.1;
+    color: rgba(235, 232, 240, .72);
     display: -webkit-box;
     -webkit-line-clamp: 3;
     -webkit-box-orient: vertical;
     overflow: hidden;
-    max-width: 46ch;
+    max-width: 44ch;
   }
-  .hero-actions {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 0.6rem;
-    margin-top: 0.4rem;
-  }
-  .hero-btn {
-    font-size: 0.9rem;
-  }
-  .hero-btn-ghost {
-    color: #fff;
-    border-color: rgba(255, 255, 255, 0.45);
-  }
-  .hero-later {
+  .hero-actions { display: flex; margin-top: .35rem; }
+  .hero-cta {
     display: inline-flex;
     align-items: center;
-    gap: 0.4rem;
-    font-size: 0.8rem;
-    font-weight: 700;
+    gap: .5rem;
+    min-height: 2.9rem;
+    padding-inline: 1.7rem;
+    border-radius: 999px;
+    font-size: .9rem;
+    font-weight: 800;
     color: #fff;
-    background: rgba(255, 255, 255, 0.1);
-    border: 1px solid rgba(255, 255, 255, 0.25);
-    border-radius: 999px;
-    padding: 0.6rem 1rem;
-    cursor: pointer;
-    backdrop-filter: blur(8px);
-    transition: transform 0.2s ease, background-color 0.2s ease;
+    background: linear-gradient(135deg, #ff5a76, #d91d4b);
+    box-shadow: 0 8px 28px rgba(255, 45, 96, .5), inset 0 1px 0 rgba(255, 255, 255, .3);
+    transition: transform .2s ease, box-shadow .2s ease;
   }
-  .hero-later:hover {
-    transform: translateY(-1px);
-    background: rgba(255, 255, 255, 0.18);
-  }
-  .hero-later .icon-check {
-    display: none;
-  }
-  .hero-later[aria-pressed='true'] .icon-check {
-    display: block;
-  }
-  .hero-later[aria-pressed='true'] .icon-plus {
-    display: none;
-  }
-  .hero-dots {
-    display: flex;
-    gap: 0.45rem;
-    margin-top: 0.9rem;
-  }
+  .hero-cta:hover { transform: translateY(-2px); box-shadow: 0 12px 34px rgba(255, 45, 96, .6); }
+  .hero-dots { display: flex; align-items: center; gap: .45rem; margin-top: .8rem; }
   .hero-dot {
-    position: relative;
-    width: 2.1rem;
-    height: 0.4rem;
+    width: .55rem;
+    height: .55rem;
     border-radius: 999px;
-    background: rgba(255, 255, 255, 0.28);
-    overflow: hidden;
-    cursor: pointer;
-    padding: 0;
+    background: rgba(255, 255, 255, .3);
     border: 0;
+    padding: 0;
+    cursor: pointer;
+    transition: width .3s ease, background .3s ease;
   }
-  .hero-dot-fill {
+  .hero-dot.is-active { width: 1.7rem; background: var(--brand); box-shadow: 0 0 12px rgba(251, 69, 103, .7); }
+  .hero-arrow {
     position: absolute;
-    inset: 0;
-    width: 0;
-    background: var(--brand);
-    border-radius: inherit;
+    z-index: 4;
+    top: 50%;
+    translate: 0 -50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    border-radius: 999px;
+    color: rgba(255, 255, 255, .85);
+    background: rgba(255, 255, 255, .12);
+    border: 1px solid rgba(255, 255, 255, .16);
+    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(10px);
+    cursor: pointer;
+    transition: background .2s ease, transform .2s ease;
+  }
+  .hero-arrow:hover { background: rgba(255, 255, 255, .22); transform: scale(1.05); }
+  .hero-arrow-next { inset-inline-end: 1.1rem; }
+  .hero-arrow-prev { inset-inline-start: 1.1rem; }
+  @media (max-width: 767px) {
+    .hero { height: 500px; border-radius: 1.25rem; }
+    .hero-shade {
+      background:
+        linear-gradient(to top, rgba(8, 8, 14, .94) 0%, rgba(8, 8, 14, .55) 45%, transparent 80%),
+        linear-gradient(to left, rgba(8, 8, 14, .35), transparent 70%);
+    }
+    .hero-content {
+      inset-inline: 0;
+      inset-block: auto 0;
+      width: auto;
+      padding: 1.25rem 1.4rem 1.6rem;
+    }
+    .hero-title { font-size: 1.35rem; }
+    .hero-arrow { display: none; }
   }
   @media (prefers-reduced-motion: reduce) {
-    .hero-slide,
-    .hero-copy.is-active {
-      animation: none;
-      transition: none;
-    }
-    .hero-slide.is-active .hero-img {
-      animation: none;
-    }
-    .hero-dot.is-active .hero-dot-fill {
-      animation: none;
-      width: 100%;
-    }
+    .hero-slide, .hero-copy.is-active, .hero-dot { animation: none; transition: none; }
+    .hero-slide.is-active .hero-img { animation: none; }
   }
 </style>
 
 <script>
-  import { getUserList, toggleUserList } from '../lib/api';
-
   const root = document.querySelector('[data-hero]') as HTMLElement | null;
   if (root) {
     const slides = Array.from(root.querySelectorAll<HTMLElement>('[data-slide]'));
     const copies = Array.from(root.querySelectorAll<HTMLElement>('[data-copy]'));
     const dots = Array.from(root.querySelectorAll<HTMLButtonElement>('[data-dot]'));
+    const nextBtn = root.querySelector<HTMLButtonElement>('[data-next]');
+    const prevBtn = root.querySelector<HTMLButtonElement>('[data-prev]');
     const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     const DURATION = 8000;
     let idx = 0;
     let timer: number | null = null;
-
-    const fills = () =>
-      Array.from(root.querySelectorAll('.hero-dot-fill')).flatMap((f) => Array.from(f.getAnimations()));
 
     const show = (i: number) => {
       idx = (i + slides.length) % slides.length;
@@ -400,12 +270,6 @@ const first = items[0];
         d.classList.toggle('is-active', on);
         d.setAttribute('aria-selected', String(on));
       });
-      // Progress fill always tracks the visible slide (Web Animations API).
-      fills().forEach((a) => a.cancel());
-      const activeFill = dots[idx]?.querySelector('.hero-dot-fill');
-      if (activeFill && !reduceMotion) {
-        activeFill.animate([{ width: '0' }, { width: '100%' }], { duration: DURATION, easing: 'linear', fill: 'forwards' });
-      }
     };
 
     const stop = () => {
@@ -413,20 +277,10 @@ const first = items[0];
         window.clearInterval(timer);
         timer = null;
       }
-      fills().forEach((a) => {
-        try {
-          (a as Animation).pause();
-        } catch {}
-      });
     };
     const start = () => {
       if (reduceMotion || slides.length < 2) return;
       stop();
-      fills().forEach((a) => {
-        try {
-          (a as Animation).play();
-        } catch {}
-      });
       timer = window.setInterval(() => show(idx + 1), DURATION);
     };
 
@@ -435,6 +289,14 @@ const first = items[0];
         show(k);
         start();
       });
+    });
+    nextBtn?.addEventListener('click', () => {
+      show(idx + 1);
+      start();
+    });
+    prevBtn?.addEventListener('click', () => {
+      show(idx - 1);
+      start();
     });
     root.addEventListener('mouseenter', stop);
     root.addEventListener('mouseleave', start);
@@ -445,94 +307,7 @@ const first = items[0];
       else start();
     });
 
-    // "Watch later" toggle — API-backed when logged in, local otherwise.
-    // One fetch for all slides (not one per slide).
-    const laterBtns = Array.from(root.querySelectorAll<HTMLButtonElement>('[data-watchlater]'));
-    getUserList('watchlist').then((slugs) => {
-      for (const btn of laterBtns) {
-        const slug = btn.getAttribute('data-watchlater') ?? '';
-        const title = btn.getAttribute('data-title') ?? '';
-        const on = slugs.includes(slug);
-        btn.setAttribute('aria-pressed', String(on));
-        btn.setAttribute('aria-label', on ? `حذف ${title} از تماشای بعدی` : `افزودن ${title} به تماشای بعدی`);
-      }
-    });
-    laterBtns.forEach((btn) => {
-      btn.addEventListener('click', () => {
-        toggleUserList('watchlist', btn.getAttribute('data-watchlater') ?? '').then((slugs) => {
-          const slug = btn.getAttribute('data-watchlater') ?? '';
-          const title = btn.getAttribute('data-title') ?? '';
-          const on = slugs.includes(slug);
-          btn.setAttribute('aria-pressed', String(on));
-          btn.setAttribute('aria-label', on ? `حذف ${title} از تماشای بعدی` : `افزودن ${title} به تماشای بعدی`);
-          window.movietoonToast?.(on ? 'به تماشای بعدی اضافه شد.' : 'از تماشای بعدی حذف شد.');
-        });
-      });
-    });
-
     show(idx);
     start();
   }
 </script>
-
-<style>
-  .hero {
-    min-height: min(790px, 86svh);
-    border: 1px solid rgba(255,255,255,.13);
-    border-radius: 1.8rem;
-    background: #101018;
-    box-shadow: 0 36px 110px rgba(0,0,0,.46), 0 0 90px rgba(130,36,86,.13);
-    isolation: isolate;
-  }
-  .hero::before { content: ''; position: absolute; z-index: 2; inset: 1rem; border: 1px solid rgba(255,255,255,.07); border-radius: 1.25rem; pointer-events: none; }
-  .hero-media { height: 41vh; min-height: 290px; }
-  .hero-img { filter: saturate(.87) contrast(1.06); }
-  .hero-shade {
-    background:
-      radial-gradient(ellipse at 18% 48%, transparent 12%, rgba(8,8,14,.12) 56%, rgba(8,8,14,.5) 100%),
-      linear-gradient(to top, #0a0b11 0%, rgba(10,11,17,.48) 25%, transparent 66%),
-      linear-gradient(to left, rgba(8,8,14,.98) 0%, rgba(8,8,14,.82) 32%, rgba(8,8,14,.2) 73%, transparent 100%);
-  }
-  .hero-content { padding: 1.6rem 1.55rem 2rem; gap: .85rem; }
-  .hero-eyebrow { width: fit-content; padding: .42rem .85rem; border-radius: 999px; border: 1px solid rgba(255,255,255,.15); background: rgba(18,17,27,.48); backdrop-filter: blur(10px); color: #ffd9df; letter-spacing: .04em; }
-  .hero-live-dot { box-shadow: 0 0 0 5px rgba(251,69,103,.14), 0 0 18px var(--brand); }
-  .hero-title { font-size: clamp(2.4rem, 5vw, 4.6rem); line-height: 1.2; letter-spacing: -.055em; text-shadow: 0 6px 35px rgba(0,0,0,.35); }
-  .hero-en { text-align: start; font-size: .9rem; letter-spacing: .14em; text-transform: uppercase; }
-  .hero-chips { gap: .5rem; margin-top: .55rem; }
-  .chip { padding: .34rem .8rem; border-radius: .7rem; background: rgba(255,255,255,.09); border-color: rgba(255,255,255,.16); }
-  .chip-rating { background: rgba(247,200,115,.13); border-color: rgba(247,200,115,.25); }
-  .chip-quality { background: linear-gradient(120deg,#fa4568,#bd2459); }
-  .hero-desc { max-width: 42ch; color: rgba(255,255,255,.83); font-size: .98rem; line-height: 2.1; }
-  .hero-actions { gap: .75rem; margin-top: .85rem; }
-  .hero-btn { min-height: 3rem; padding-inline: 1.4rem; border-radius: .85rem; }
-  .hero-later { min-height: 3rem; border-radius: .85rem; }
-  .hero-dots { gap: .55rem; margin-top: 1.25rem; }
-  .hero-dot { width: 2.55rem; height: .34rem; background: rgba(255,255,255,.32); }
-  .hero-dot-fill { background: linear-gradient(90deg,#ff8b70,#fb4567); }
-  @media (min-width: 768px) {
-    .hero { min-height: min(790px, 86svh); }
-    .hero-content { width: min(660px, 56%); padding: 4.5rem 4rem; }
-    .hero-media { height: auto; }
-    .hero-shade {
-      background:
-        radial-gradient(ellipse at 18% 48%, transparent 5%, rgba(8,8,14,.08) 53%, rgba(8,8,14,.46) 100%),
-        linear-gradient(to top, rgba(8,8,14,.72) 0%, transparent 50%),
-        linear-gradient(to left, rgba(8,8,14,.99) 0%, rgba(8,8,14,.9) 31%, rgba(8,8,14,.3) 69%, rgba(8,8,14,.04) 100%);
-    }
-  }
-  @media (max-width: 767px) {
-    .hero { min-height: 0; border-radius: 1.25rem; }
-    .hero::before { inset: .55rem; border-radius: .9rem; }
-    .hero-media { height: 37svh; min-height: 250px; }
-    .hero-shade { background: linear-gradient(to top,#0a0b11 0%,rgba(10,11,17,.7) 24%,transparent 85%), linear-gradient(to left,rgba(8,8,14,.2),transparent); }
-    .hero-content { margin-top: -1rem; padding: 0 1.25rem 1.5rem; }
-    .hero-title { font-size: clamp(2rem, 9vw, 3rem); }
-    .hero-desc { font-size: .88rem; }
-    .hero-actions { display: grid; grid-template-columns: 1fr 1fr; }
-    .hero-later { grid-column: 1 / -1; justify-content: center; }
-  }
-  @media (prefers-reduced-motion: reduce) {
-    .hero::before { transition: none; }
-    .hero-img { animation: none !important; }
-  }
-</style>

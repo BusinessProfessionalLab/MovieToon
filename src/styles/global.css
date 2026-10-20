@@ -6,9 +6,10 @@
 @tailwind utilities;
 
 :root {
-  color-scheme: light; /* keeps native controls (select dropdowns) readable */
+  color-scheme: dark;
   --bg: #08090e;
   --bg-soft: #10121b;
+  --glow: #21141f;
   --card: rgba(19, 21, 31, 0.86);
   --text: #f7f5f4;
   --muted: #a3a1af;
@@ -17,6 +18,18 @@
   --brand-strong: #e72b55;
   --gold: #f7c873;
   --radius: 1.15rem;
+}
+[data-theme='light'] {
+  color-scheme: light; /* keeps native controls (select dropdowns) readable */
+  --bg: #f3f4f8;
+  --bg-soft: #ffffff;
+  --glow: #ffdfe8;
+  --card: rgba(255, 255, 255, 0.92);
+  --text: #17181d;
+  --muted: #5b5e6b;
+  --border: rgba(10, 10, 20, 0.1);
+  --brand: #e72b55;
+  --brand-strong: #c21745;
 }
 [data-theme='dark'] {
   color-scheme: dark;
@@ -33,7 +46,7 @@ html {
   scroll-behavior: smooth;
 }
 body {
-  background: radial-gradient(ellipse at 50% -30%, #21141f 0, var(--bg) 56%);
+  background: radial-gradient(ellipse at 50% -30%, var(--glow) 0, var(--bg) 56%);
   color: var(--text);
   font-family: 'Vazirmatn', Tahoma, system-ui, sans-serif;
   letter-spacing: -0.012em;

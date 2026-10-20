@@ -12,7 +12,7 @@ import { getHomeDataLive } from '../lib/api';
 import { formatDuration, timeAgoFa, toFa, toFaDecimal } from '../lib/fa';
 import { routeFor } from '../lib/repository';
 
-const { hero, movies, series, animations, top10, fresh, collections, genres } = await getHomeDataLive();
+const { hero, movies, series, animations, top10, fresh, genres } = await getHomeDataLive();
 
 const heroItems: HeroItem[] = hero.map((t) => ({
   slug: t.slug,
@@ -27,6 +27,7 @@ const heroItems: HeroItem[] = hero.map((t) => ({
   backdrop: t.backdrop,
   detailHref: routeFor(t),
   watchHref: `/watch/${t.slug}`,
+  type: t.type,
 }));
 
 const popularGenres = genres.slice(0, 8);
@@ -116,49 +117,6 @@ const popularGenres = genres.slice(0, 8);
           </TitleCarousel>
         ) : (
           <EmptyState title="انیمیشنی پیدا نشد" linkText="مشاهده همه انیمیشن‌ها" linkHref="/animations" />
-        )}
-      </HomeSection>
-    </div>
-
-    <div class="reveal" data-reveal>
-      <HomeSection eyebrow="منتخب سردبیر" title="بخش‌های ویژه" moreHref="/collections" label="بخش‌های ویژه">
-        {collections.length > 0 ? (
-          <div class="grid gap-4 md:grid-cols-3">
-            {collections.map((c) => (
-              <a href={`/collections/${c.slug}`} class="card overflow-hidden group collection-card" aria-label={c.name}>
-                <div class="relative h-44 overflow-hidden">
-                  {c.cover ? (
-                    <img
-                      src={c.cover}
-                      alt=""
-                      aria-hidden="true"
-                      loading="lazy"
-                      decoding="async"
-                      width="640"
-                      height="360"
-                      class="collection-cover w-full h-full object-cover"
-                    />
-                  ) : (
-                    <div class="collection-fallback" aria-hidden="true">
-                      <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true">
-                        <rect x="2" y="4" width="20" height="16" rx="3" />
-                        <path d="M2 9h20M7 4l2.5 5M13 4l2.5 5" stroke-linecap="round" />
-                        <polygon points="10 12.5 15 14.5 10 16.5" fill="currentColor" stroke="none" />
-                      </svg>
-                    </div>
-                  )}
-                  <div class="absolute inset-0 collection-shade" aria-hidden="true"></div>
-                  <div class="absolute bottom-3 inset-inline-4 flex items-end justify-between gap-2">
-                    <h3 class="text-white font-black text-lg">{c.name}</h3>
-                    <span class="collection-count">{toFa(c.titleSlugs.length)} عنوان</span>
-                  </div>
-                </div>
-                <p class="p-4 text-sm muted">{c.description}</p>
-              </a>
-            ))}
-          </div>
-        ) : (
-          <EmptyState title="مجموعه‌ای پیدا نشد" linkText="مشاهده مجموعه‌ها" linkHref="/collections" />
         )}
       </HomeSection>
     </div>

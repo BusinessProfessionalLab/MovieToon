@@ -9,7 +9,7 @@
  *   offline work never break.
  * - Every function falls back to the local mock when the API is unreachable.
  */
-import type { Actor, Collection, Genre, Title, TitleComment } from '../types';
+import type { Actor, Collection, DownloadLink, Genre, Title, TitleComment } from '../types';
 import { actors as localActors, collections as localCollections, comments as localComments, genres as localGenres, titles as localTitles } from '../data';
 import { filterTitles, paginate, routeFor, searchTitles as localSearch, similarTitles } from './repository';
 
@@ -64,6 +64,8 @@ export interface ListParams {
   country?: string;
   minRating?: number;
   ageGroup?: string;
+  featured?: boolean;
+  homeAnimation?: boolean;
   sort?: 'rating' | 'newest' | 'year' | 'views';
   page?: number;
   pageSize?: number;
@@ -72,6 +74,7 @@ export interface ListParams {
 
 function toTitle(t: Record<string, unknown>): Title {
   const genres = Array.isArray(t['genres']) ? (t['genres'] as string[]) : [];
+  const rawLinks = Array.isArray(t['downloadLinks']) ? (t['downloadLinks'] as Array<Record<string, unknown>>) : [];
   return {
     slug: String(t['slug'] ?? ''),
     type: (t['type'] as Title['type']) ?? 'movie',
@@ -102,6 +105,15 @@ function toTitle(t: Record<string, unknown>): Title {
     ageGroup: (t['ageGroup'] as Title['ageGroup']) ?? undefined,
     language: String(t['language'] ?? 'فارسی'),
     seasons: toSeasons(t),
+    downloadLinks: rawLinks.map((l) => ({
+      id: Number(l['id'] ?? 0),
+      episodeId: l['episodeId'] == null ? null : Number(l['episodeId']),
+      type: String(l['type'] ?? ''),
+      url: String(l['url'] ?? ''),
+      quality: String(l['quality'] ?? ''),
+      size: String(l['size'] ?? ''),
+      label: String(l['label'] ?? ''),
+    })),
     ...(Array.isArray(t['actors']) ? { actors: t['actors'] as Array<{ slug: string; name: string; photo?: string }> } : {}),
     ...(Array.isArray(t['collectionSlugs']) ? { collectionSlugs: t['collectionSlugs'] as string[] } : {}),
   };
@@ -118,6 +130,7 @@ function toSeasons(t: Record<string, unknown>): Title['seasons'] {
       number: Number(s['number'] ?? 0),
       episodes: ((s['episodes'] as Array<Record<string, unknown>>) ?? []).map((e) => ({
         id: String(e['id'] ?? `${t['slug']}-s${s['number']}e${e['number']}`),
+        episodeId: e['episodeId'] == null ? undefined : Number(e['episodeId']),
         season: Number(e['season'] ?? s['number'] ?? 0),
         number: Number(e['number'] ?? 0),
         title: String(e['title'] ?? ''),
@@ -161,6 +174,57 @@ export async function getHeroTitles(limit = 5): Promise<Title[]> {
       .sort((a, b) => b.imdb - a.imdb)
       .slice(0, limit);
   }
+}
+
+/** Admin: full replace of the Hero set. Checked slugs stay, unchecked are removed. */
+export async function setHeroSlugs(slugs: string[]): Promise<{ count: number }> {
+  const res = await fetch('/api/titles/featured', {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+    body: JSON.stringify({ slugs }),
+  });
+  if (!res.ok) {
+    let message = 'خطا در ثبت.';
+    try {
+      const b = (await res.json()) as { error?: string };
+      if (b?.error) message = b.error;
+    } catch { /* keep default */ }
+    throw new Error(message);
+  }
+  const parsed = (await res.json()) as { success: boolean; data: { count: number } };
+  if (!parsed || parsed.success !== true) throw new Error('خطا در ثبت.');
+  return parsed.data;
+}
+
+async function putSlugs(path: string, slugs: string[]): Promise<{ count: number }> {
+  const res = await fetch(path, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+    body: JSON.stringify({ slugs }),
+  });
+  if (!res.ok) {
+    let message = 'خطا در ثبت.';
+    try {
+      const b = (await res.json()) as { error?: string };
+      if (b?.error) message = b.error;
+    } catch { /* keep default */ }
+    throw new Error(message);
+  }
+  const parsed = (await res.json()) as { success: boolean; data: { count: number } };
+  if (!parsed || parsed.success !== true) throw new Error('خطا در ثبت.');
+  return parsed.data;
+}
+
+/** Admin: replace the Top10 set (rank = selection order). */
+export async function setTop10Slugs(slugs: string[]): Promise<{ count: number }> {
+  return putSlugs('/api/titles/top10', slugs);
+}
+
+/** Admin: replace the homepage "popular animations" set. */
+export async function setHomeAnimationSlugs(slugs: string[]): Promise<{ count: number }> {
+  return putSlugs('/api/titles/home-animation', slugs);
 }
 
 export async function getMovies(limit = 10): Promise<Title[]> {
@@ -221,6 +285,24 @@ export async function getTitle(slug: string): Promise<TitleWithExtras | undefine
     return toTitle(t) as TitleWithExtras;
   } catch {
     return localTitles.find((t) => t.slug === slug);
+  }
+}
+
+export async function getTitleLinks(slug: string, episodeId?: number): Promise<DownloadLink[]> {
+  try {
+    const qs = episodeId !== undefined ? `?episodeId=${episodeId}` : '';
+    const rows = await apiGet<Array<Record<string, unknown>>>(`/api/titles/${encodeURIComponent(slug)}/links${qs}`);
+    return rows.map((l) => ({
+      id: Number(l['id'] ?? 0),
+      episodeId: l['episodeId'] == null ? null : Number(l['episodeId']),
+      type: String(l['type'] ?? l['linkType'] ?? ''),
+      url: String(l['url'] ?? ''),
+      quality: String(l['quality'] ?? ''),
+      size: String(l['size'] ?? ''),
+      label: String(l['label'] ?? ''),
+    }));
+  } catch {
+    return [];
   }
 }
 
@@ -403,7 +485,7 @@ export async function listTitlesLive(params: ListParams = {}): Promise<{ data: T
 
 export async function getHomeDataLive(): Promise<HomeData> {
   const [hero, movies, series, animations, top10, fresh, collections, genres] = await Promise.all([
-    apiGet<Array<Record<string, unknown>>>('/api/titles?sort=rating&featured=true&page=1&pageSize=5')
+    apiGet<Array<Record<string, unknown>>>('/api/titles?sort=rating&featured=true&page=1&pageSize=12')
       .then((r) => r.map(toTitle))
       .catch(() => [] as Title[]),
     listTitlesLive({ type: 'movie', sort: 'newest', pageSize: 10 })
@@ -412,7 +494,7 @@ export async function getHomeDataLive(): Promise<HomeData> {
     listTitlesLive({ type: 'series', sort: 'views', pageSize: 10 })
       .then((r) => r.data)
       .catch(() => [] as Title[]),
-    listTitlesLive({ type: 'animation', sort: 'newest', pageSize: 10 })
+    listTitlesLive({ homeAnimation: true, sort: 'rating', pageSize: 12 })
       .then((r) => r.data)
       .catch(() => [] as Title[]),
     apiGet<Array<Record<string, unknown>>>('/api/titles/top')

@@ -2,6 +2,8 @@ import 'reflect-metadata';
 import { DataSource } from 'typeorm';
 import { ENTITIES } from './entities';
 import { InitSchema1793000000000 } from './migrations/1793000000000-init-schema';
+import { SeekoImport1793100000000 } from './migrations/1793100000000-seeko-import';
+import { HomepagePicks1793200000000 } from './migrations/1793200000000-homepage-picks';
 import { SnakeNamingStrategy } from './naming.strategy';
 
 /**
@@ -16,7 +18,7 @@ export default new DataSource({
   password: process.env.DB_PASSWORD,
   database: process.env.DB_NAME ?? 'movietoon',
   entities: ENTITIES,
-  migrations: [InitSchema1793000000000],
+  migrations: [InitSchema1793000000000, SeekoImport1793100000000, HomepagePicks1793200000000],
   namingStrategy: new SnakeNamingStrategy(),
   synchronize: false,
 });

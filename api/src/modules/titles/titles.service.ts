@@ -3,12 +3,16 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { clampPageSize, pageMeta } from '../../common/response';
 import { TitleComment } from '../../database/entities/comment.entity';
+import { DownloadLink } from '../../database/entities/download-link.entity';
 import { Title } from '../../database/entities/title.entity';
 import { ListTitlesQuery } from './dto/list-titles.query';
 
 @Injectable()
 export class TitlesService {
-  constructor(@InjectRepository(Title) private readonly titles: Repository<Title>) {}
+  constructor(
+    @InjectRepository(Title) private readonly titles: Repository<Title>,
+    @InjectRepository(DownloadLink) private readonly links: Repository<DownloadLink>,
+  ) {}
 
   private summary(t: Title) {
     return {
@@ -58,6 +62,9 @@ export class TitlesService {
     if (query.featured !== undefined) {
       qb.andWhere('t.featured = :featured', { featured: query.featured ? 1 : 0 });
     }
+    if (query.homeAnimation !== undefined) {
+      qb.andWhere('t.homeAnimation = :homeAnimation', { homeAnimation: query.homeAnimation ? 1 : 0 });
+    }
     if (query.q?.trim()) {
       const like = `%${query.q.trim()}%`;
       qb.andWhere('(t.titleFa LIKE :q OR t.titleEn LIKE :q OR t.director LIKE :q)', { q: like });
@@ -89,7 +96,7 @@ export class TitlesService {
     const actors = (actorRows as { slug: string; name: string; photo: string }[]).map((a) => ({ slug: a.slug, name: a.name, photo: a.photo ?? '' }));
     const flatEpisodes = (t.episodes ?? [])
       .sort((a, b) => a.season - b.season || a.number - b.number)
-      .map((e) => ({ season: e.season, number: e.number, title: e.titleFa, durationMin: e.durationMin }));
+      .map((e) => ({ id: e.id, season: e.season, number: e.number, title: e.titleFa, durationMin: e.durationMin, thumbnail: e.thumbnail ?? '', description: e.description ?? '', externalId: e.externalId ?? null }));
     const seasonNumbers = [...new Set(flatEpisodes.map((e) => e.season))];
     const seasons = seasonNumbers.map((season) => ({
       number: season,
@@ -97,12 +104,13 @@ export class TitlesService {
         .filter((e) => e.season === season)
         .map((e) => ({
           id: `${slug}-s${e.season}e${e.number}`,
+          episodeId: e.id,
           season: e.season,
           number: e.number,
           title: e.title,
           durationMin: e.durationMin,
-          thumbnail: '',
-          description: '',
+          thumbnail: e.thumbnail,
+          description: e.description,
         })),
     }));
     const castNames = actors.map((a) => a.name);    if (Array.isArray(t.cast)) {
@@ -110,6 +118,15 @@ export class TitlesService {
         if (typeof n === 'string' && !castNames.includes(n)) castNames.push(n);
       }
     }
+    const downloadLinks = (await this.links.find({ where: { titleSlug: slug } as never, order: { id: 'ASC' } })).map((l) => ({
+      id: l.id,
+      episodeId: l.episodeId,
+      type: l.linkType,
+      url: l.url,
+      quality: l.quality,
+      size: l.size,
+      label: l.label,
+    }));
     return {
       slug: t.slug,
       type: t.type,
@@ -141,6 +158,7 @@ export class TitlesService {
       language: t.language,
       actors,
       seasons,
+      downloadLinks,
       collectionSlugs,
     };
   }
@@ -188,11 +206,56 @@ export class TitlesService {
     return rows;
   }
 
+  /** Download/playback links imported from seeko getaffiliatelinks. */
+  async linksOf(slug: string, episodeId?: number) {
+    const exists = await this.titles.exist({ where: { slug } });
+    if (!exists) throw new NotFoundException({ code: 'NOT_FOUND', error: 'عنوان پیدا نشد.' });
+    const where: Record<string, unknown> = { titleSlug: slug };
+    if (episodeId !== undefined) where.episodeId = episodeId;
+    return this.links.find({ where: where as never, order: { id: 'ASC' } });
+  }
+
   async collectionSlugsOf(slug: string): Promise<string[]> {
     const rows: { collection_slug: string }[] = await this.titles.manager.query(
       'SELECT collection_slug FROM collection_titles WHERE title_slug = $1',
       [slug],
     );
     return rows.map((r) => r.collection_slug);
+  }
+
+  /** Full replace of the Hero set: checked slugs become featured, everything else is cleared. */
+  async setFeatured(slugs: string[]): Promise<{ count: number }> {
+    const unique = [...new Set(slugs.filter((s) => typeof s === 'string' && s.length > 0))];
+    await this.titles.manager.transaction(async (tx) => {
+      await tx.query('UPDATE titles SET featured = false WHERE featured = true');
+      if (unique.length > 0) {
+        await tx.query('UPDATE titles SET featured = true WHERE slug = ANY($1)', [unique]);
+      }
+    });
+    return { count: unique.length };
+  }
+
+  /** Full replace of the Top10: rank = selection order (1-based). */
+  async setTop10(slugs: string[]): Promise<{ count: number }> {
+    const unique = [...new Set(slugs.filter((s) => typeof s === 'string' && s.length > 0))].slice(0, 10);
+    await this.titles.manager.transaction(async (tx) => {
+      await tx.query('UPDATE titles SET top10_rank = NULL WHERE top10_rank IS NOT NULL');
+      for (let i = 0; i < unique.length; i++) {
+        await tx.query('UPDATE titles SET top10_rank = $2 WHERE slug = $1', [unique[i], i + 1]);
+      }
+    });
+    return { count: unique.length };
+  }
+
+  /** Full replace of the homepage "popular animations" set. */
+  async setHomeAnimation(slugs: string[]): Promise<{ count: number }> {
+    const unique = [...new Set(slugs.filter((s) => typeof s === 'string' && s.length > 0))];
+    await this.titles.manager.transaction(async (tx) => {
+      await tx.query('UPDATE titles SET home_animation = false WHERE home_animation = true');
+      if (unique.length > 0) {
+        await tx.query('UPDATE titles SET home_animation = true WHERE slug = ANY($1)', [unique]);
+      }
+    });
+    return { count: unique.length };
   }
 }

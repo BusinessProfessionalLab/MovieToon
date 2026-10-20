@@ -27,12 +27,12 @@ const similar = await getRelated(t.slug, 10);
 const rawComments = await getTitleComments(t.slug);
 const titleComments: TitleComment[] = rawComments.map((c) => ({ ...c, date: formatJalaliDate(c.date) }));
 const linkedActors = new Map((detail && 'actors' in detail ? (detail as { actors: { slug: string; name: string; photo?: string }[] }).actors : []).map((a) => [a.name, a] as const));
+const movieLinks = (full.downloadLinks ?? []).filter((l) => l.episodeId == null && l.url);
 const castActors = (full.cast.length > 0 ? full.cast : t.cast).map((name) => {
   const linked = linkedActors.get(name);
   return { name, actor: linked ? { slug: linked.slug, name: linked.name, photo: linked.photo ?? '' } : (localActors.find((a) => a.name === name) ?? null) };
 });
-const jsonLd = {
-  '@context': 'https://schema.org',
+const jsonLd = {  '@context': 'https://schema.org',
   '@type': t.type === 'movie' ? 'Movie' : 'TVSeries',
   name: t.titleFa,
   alternateName: t.titleEn,
@@ -91,7 +91,7 @@ const jsonLd = {
         <button id="modal-close" class="p-2 rounded-lg border" style="border-color: var(--border)" aria-label="بستن پخش‌کننده">✕</button>
       </div>
       <video controls preload="none" poster={t.backdrop} class="w-full aspect-video rounded-xl bg-black" aria-label={`پیش‌نمایش ${t.titleFa}`}>
-        <source src="https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4" type="video/mp4" />
+        {movieLinks[0] ? <source src={movieLinks[0].url} type="video/mp4" /> : <source src="https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4" type="video/mp4" />}
       </video>
       <div class="flex flex-wrap gap-4 mt-3 text-sm">
         <label>کیفیت:
@@ -125,6 +125,28 @@ const jsonLd = {
     <section class="mt-10" aria-label="فصل‌ها و قسمت‌ها">
       <SectionHeading title="فصل‌ها و قسمت‌ها" />
       <SeasonTabs seasons={seasons} watchBase={`/watch/${t.slug}`} client:visible />
+    </section>
+  )}
+
+  {movieLinks.length > 0 && (
+    <section class="mt-10" aria-label="دانلود">
+      <SectionHeading title="دانلود" />
+      <ul class="grid sm:grid-cols-2 gap-2">
+        {movieLinks.map((l) => (
+          <li>
+            <a href={l.url} class="card p-3 flex items-center justify-between text-sm hover:shadow-lg" download>
+              <span class="font-bold">{l.label || l.quality}</span>
+              {l.size && l.size !== '0' && <span class="muted text-xs">{l.size}</span>}
+            </a>
+          </li>
+        ))}
+      </ul>
+    </section>
+  )}
+  {t.type === 'series' && (full.downloadLinks ?? []).length > 0 && movieLinks.length === 0 && (
+    <section class="mt-10" aria-label="دانلود">
+      <SectionHeading title="دانلود" />
+      <p class="muted text-sm">لینک دانلود هر قسمت در <a href={`/watch/${t.slug}`} class="font-bold">صفحه تماشا</a> قرار دارد.</p>
     </section>
   )}
 

@@ -18,12 +18,23 @@ export interface Actor {
 
 export interface Episode {
   id: string;
+  episodeId?: number;
   season: number;
   number: number;
   title: string;
   durationMin: number;
   thumbnail: string;
   description: string;
+}
+
+export interface DownloadLink {
+  id: number;
+  episodeId: number | null;
+  type: string;
+  url: string;
+  quality: string;
+  size: string;
+  label: string;
 }
 
 export interface Season {
@@ -72,6 +83,7 @@ export interface Title {
   ageGroup?: 'کودک' | 'نوجوان' | 'خانواده';
   language: string;
   seasons?: Season[];
+  downloadLinks?: DownloadLink[];
 }
 
 export interface Plan {
