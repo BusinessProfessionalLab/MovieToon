@@ -1,7 +1,7 @@
 export const SITE = {
   name: 'مووی‌تون',
   tagline: 'تماشای فیلم، سریال و انیمیشن با دوبله و زیرنویس فارسی',
-  url: 'https://movietoon.example.ir',
+  url: 'https://movietoon.ir',
   locale: 'fa_IR',
 };
 

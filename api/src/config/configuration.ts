@@ -7,6 +7,7 @@ export const envValidationSchema = Joi.object({
   DB_USERNAME: Joi.string().default('movietoon'),
   DB_PASSWORD: Joi.string().min(1).required(),
   DB_NAME: Joi.string().default('movietoon'),
+  DB_SSL: Joi.boolean().default(false),
   CORS_ORIGIN: Joi.string().uri().default('http://localhost:4321'),
   JWT_ACCESS_SECRET: Joi.string().min(32).required(),
   JWT_REFRESH_SECRET: Joi.string().min(32).required().invalid(Joi.ref('JWT_ACCESS_SECRET')),

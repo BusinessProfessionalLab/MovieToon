@@ -19,6 +19,8 @@ import { SnakeNamingStrategy } from './naming.strategy';
         username: config.get<string>('DB_USERNAME', 'movietoon'),
         password: config.get<string>('DB_PASSWORD', ''),
         database: config.get<string>('DB_NAME', 'movietoon'),
+        // Managed providers (Neon) need TLS.
+        ssl: config.get<boolean>('DB_SSL', false) ? { rejectUnauthorized: false } : undefined,
         entities: ENTITIES,
         migrations: [InitSchema1793000000000, SeekoImport1793100000000, HomepagePicks1793200000000],
         namingStrategy: new SnakeNamingStrategy(),

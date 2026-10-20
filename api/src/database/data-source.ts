@@ -17,6 +17,8 @@ export default new DataSource({
   username: process.env.DB_USERNAME ?? 'movietoon',
   password: process.env.DB_PASSWORD,
   database: process.env.DB_NAME ?? 'movietoon',
+  // Neon and other managed providers need TLS (DB_SSL=true).
+  ssl: process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : undefined,
   entities: ENTITIES,
   migrations: [InitSchema1793000000000, SeekoImport1793100000000, HomepagePicks1793200000000],
   namingStrategy: new SnakeNamingStrategy(),

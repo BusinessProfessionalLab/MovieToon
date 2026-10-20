@@ -3,11 +3,13 @@ import react from '@astrojs/react';
 import sitemap from '@astrojs/sitemap';
 import tailwind from '@astrojs/tailwind';
 import node from '@astrojs/node';
+import vercel from '@astrojs/vercel';
 
 export default defineConfig({
-  site: 'https://movietoon.example.ir',
+  site: 'https://movietoon.ir',
   output: 'server',
-  adapter: node({ mode: 'standalone' }),
+  // Vercel builds set VERCEL=1: use the Vercel adapter there, standalone Node locally.
+  adapter: process.env.VERCEL ? vercel() : node({ mode: 'standalone' }),
   integrations: [react(), sitemap(), tailwind()],
   // Fixed dev port: this project owns :4321. strictPort makes Astro fail
   // loudly instead of silently sliding onto another project's port.
