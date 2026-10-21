@@ -16,11 +16,22 @@ import { filterTitles, paginate, routeFor, searchTitles as localSearch, similarT
 const API = (import.meta.env.PUBLIC_API_URL as string | undefined)?.replace(/\/$/, '');
 const isBrowser = typeof window !== 'undefined';
 
+/**
+ * Server-only base URL. `API_INTERNAL_URL` is a private (non-PUBLIC_) variable,
+ * so it must be read from process.env at runtime instead of being inlined.
+ */
+function serverApi(): string | undefined {
+  const proc = (globalThis as { process?: { env?: Record<string, string | undefined> } }).process;
+  return proc?.env?.['API_INTERNAL_URL']?.replace(/\/$/, '');
+}
+
 function base(): string {
-  // Browser: same-origin relative URL (dev proxy / prod rewrite). SSR: absolute URL.
+  // Browser: same-origin relative URL (dev proxy / prod rewrite) unless an
+  // explicit PUBLIC_API_URL is baked in. SSR: absolute URL.
   if (isBrowser) return API ?? '';
-  if (!API) throw new Error('NO_API');
-  return API;
+  const ssr = serverApi() ?? API;
+  if (!ssr) throw new Error('NO_API');
+  return ssr;
 }
 
 async function apiGet<T>(path: string, init?: RequestInit): Promise<T> {
@@ -630,7 +641,7 @@ export async function getTitleComments(slug: string): Promise<CommentItem[]> {
 }
 
 export async function postComment(slug: string, input: { author: string; text: string }): Promise<CommentItem> {
-  const res = await fetch(`${isBrowser && !API ? '' : API ?? ''}/api/titles/${encodeURIComponent(slug)}/comments`, {
+  const res = await fetch(`${base()}/api/titles/${encodeURIComponent(slug)}/comments`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ author: input.author, text: input.text }),
