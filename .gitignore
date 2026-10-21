@@ -7,10 +7,10 @@ node_modules/
 .astro/
 dist/
 
-# Environment variables and local secrets
-.env
-.env.*
-!.env.example
+# # Environment variables and local secrets
+# .env
+# .env.*
+# .env.example
 
 # Logs
 *.log
