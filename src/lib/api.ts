@@ -3,10 +3,11 @@
  *
  * - Browser (client islands, forms): same-origin relative `/api/*` calls,
  *   which the dev server proxies to Nest (see astro.config) and production
- *   serves via host rewrites. No CORS involved.
- * - SSR / build time: absolute `PUBLIC_API_URL` when set; otherwise the
- *   bundled local mock (identical content to the DB seed) so builds and
- *   offline work never break.
+ *   serves via the Vercel rewrite. No CORS involved. Only an explicit
+ *   `PUBLIC_API_URL` switches the browser to absolute cross-origin calls.
+ * - SSR / build time: absolute `API_INTERNAL_URL` (private, runtime) or
+ *   `PUBLIC_API_URL`; otherwise the bundled local mock (identical content to
+ *   the DB seed) so builds and offline work never break.
  * - Every function falls back to the local mock when the API is unreachable.
  */
 import type { Actor, Collection, DownloadLink, Genre, Title, TitleComment } from '../types';
