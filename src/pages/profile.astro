@@ -28,7 +28,7 @@ if (!user) return Astro.redirect('/login?next=%2Fprofile');
 </Base>
 <script is:inline>
   document.getElementById('logout-button')?.addEventListener('click', async () => {
-    await fetch('/api/auth/logout', { method: 'POST' });
+    await fetch(`${window.__MT_API__ || ''}/api/auth/logout`, { method: 'POST', credentials: 'include' });
     window.location.assign('/');
   });
 </script>

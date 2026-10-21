@@ -53,6 +53,10 @@ const canonicalUrl = canonical ?? Astro.url.href;
       />
     </noscript>
     {jsonLd && <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />}
+    <!-- Absolute API origin for inline (is:inline) scripts; empty = same-origin. -->
+    <script is:inline define:vars={{ apiBase: (import.meta.env.PUBLIC_API_URL ?? '').replace(/\/$/, '') }}>
+      window.__MT_API__ = apiBase;
+    </script>
     <script is:inline>
       try {
         const t = localStorage.getItem('movietoon-theme') || 'dark';

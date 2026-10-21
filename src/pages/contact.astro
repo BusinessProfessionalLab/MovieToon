@@ -32,9 +32,10 @@ import Breadcrumbs from '../components/Breadcrumbs.astro';
     if (v('c-text').length < 10) return show('متن پیام باید حداقل ۱۰ حرف باشد.');
     err.classList.add('hidden');
     try {
-      const res = await fetch('/api/contact', {
+      const res = await fetch(`${window.__MT_API__ || ''}/api/contact`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({ name: v('c-name'), email: v('c-email'), subject: v('c-subject'), message: v('c-text') }),
       });
       if (!res.ok) throw new Error('send failed');

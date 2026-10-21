@@ -8,7 +8,19 @@ export const envValidationSchema = Joi.object({
   DB_PASSWORD: Joi.string().min(1).required(),
   DB_NAME: Joi.string().default('movietoon'),
   DB_SSL: Joi.boolean().default(false),
-  CORS_ORIGIN: Joi.string().uri().default('http://localhost:4321'),
+  CORS_ORIGIN: Joi.string()
+    .custom((value: string, helpers) => {
+      const parts = value
+        .split(',')
+        .map((o) => o.trim())
+        .filter(Boolean);
+      if (parts.length === 0) return helpers.error('any.invalid');
+      for (const part of parts) {
+        if (Joi.string().uri().validate(part).error) return helpers.error('any.invalid');
+      }
+      return value;
+    }, 'comma-separated origin list')
+    .default('http://localhost:4321'),
   JWT_ACCESS_SECRET: Joi.string().min(32).required(),
   JWT_REFRESH_SECRET: Joi.string().min(32).required().invalid(Joi.ref('JWT_ACCESS_SECRET')),
   ACCESS_TOKEN_TTL: Joi.string()

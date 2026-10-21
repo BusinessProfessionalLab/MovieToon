@@ -41,9 +41,10 @@ const safeNext = next?.startsWith('/') && !next.startsWith('//') ? next : '/prof
     error.classList.add('hidden');
     button.disabled = true;
     try {
-      const response = await fetch('/api/auth/login', {
+      const response = await fetch(`${window.__MT_API__ || ''}/api/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({ email: value('email'), password: value('password') }),
       });
       const result = await response.json();

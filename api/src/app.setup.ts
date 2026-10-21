@@ -25,7 +25,12 @@ export async function createApp(): Promise<INestApplication> {
     next();
   });
   app.enableCors({
-    origin: config.get<string>('CORS_ORIGIN'),
+    // Comma-separated list: the site is served from both the apex and www
+    // domains, and local dev needs its own origin.
+    origin: (config.get<string>('CORS_ORIGIN') ?? '')
+      .split(',')
+      .map((o) => o.trim())
+      .filter(Boolean),
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],

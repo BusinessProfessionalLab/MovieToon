@@ -31,9 +31,10 @@ import Breadcrumbs from '../components/Breadcrumbs.astro';
     if (t.length < 10) { err.textContent = 'توضیحات باید حداقل ۱۰ حرف باشد.'; err.classList.remove('hidden'); return; }
     err.classList.add('hidden');
     try {
-      const res = await fetch('/api/reports', {
+      const res = await fetch(`${window.__MT_API__ || ''}/api/reports`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({
           link: document.getElementById('r-link').value.trim(),
           type: document.getElementById('r-type').value,

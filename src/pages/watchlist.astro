@@ -17,7 +17,7 @@ import Breadcrumbs from '../components/Breadcrumbs.astro';
     const empty = document.getElementById('w-empty');
     let slugs = [];
     try {
-      const apiRes = await fetch('/api/users/me/watchlist', { credentials: 'include' });
+      const apiRes = await fetch(`${window.__MT_API__ || ''}/api/users/me/watchlist`, { credentials: 'include' });
       if (apiRes.ok) {
         const body = await apiRes.json();
         if (body && body.success && Array.isArray(body.data)) slugs = body.data;

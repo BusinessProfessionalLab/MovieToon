@@ -46,9 +46,10 @@ import Breadcrumbs from '../components/Breadcrumbs.astro';
     if (value('password') !== value('password2')) return showError('تکرار گذرواژه با گذرواژه یکسان نیست.');
     button.disabled = true;
     try {
-      const response = await fetch('/api/auth/register', {
+      const response = await fetch(`${window.__MT_API__ || ''}/api/auth/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({ name: value('name'), email: value('email'), password: value('password') }),
       });
       const result = await response.json();

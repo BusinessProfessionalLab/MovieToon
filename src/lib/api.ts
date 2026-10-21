@@ -190,7 +190,7 @@ export async function getHeroTitles(limit = 5): Promise<Title[]> {
 
 /** Admin: full replace of the Hero set. Checked slugs stay, unchecked are removed. */
 export async function setHeroSlugs(slugs: string[]): Promise<{ count: number }> {
-  const res = await fetch('/api/titles/featured', {
+  const res = await fetch(`${base()}/api/titles/featured`, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
     credentials: 'include',
@@ -210,7 +210,7 @@ export async function setHeroSlugs(slugs: string[]): Promise<{ count: number }> 
 }
 
 async function putSlugs(path: string, slugs: string[]): Promise<{ count: number }> {
-  const res = await fetch(path, {
+  const res = await fetch(`${base()}${path}`, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
     credentials: 'include',
@@ -645,6 +645,7 @@ export async function postComment(slug: string, input: { author: string; text: s
   const res = await fetch(`${base()}/api/titles/${encodeURIComponent(slug)}/comments`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
     body: JSON.stringify({ author: input.author, text: input.text }),
   });
   if (!res.ok) throw new Error(`API ${res.status}`);

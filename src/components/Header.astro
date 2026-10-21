@@ -107,13 +107,14 @@ const isActive = (href: string) => (href === '/' ? path === '/' : path === href 
 </script>
 <script is:inline>
   (async () => {
+    const API_BASE = window.__MT_API__ || '';
     const readUser = async () => {
       const pickUser = (body) => body?.data?.user ?? body?.data ?? null;
-      const response = await fetch('/api/auth/me', { credentials: 'same-origin' });
+      const response = await fetch(`${API_BASE}/api/auth/me`, { credentials: 'include' });
       if (response.status !== 401) return response.ok ? pickUser(await response.json()) : null;
-      const refreshed = await fetch('/api/auth/refresh', { method: 'POST', credentials: 'same-origin' });
+      const refreshed = await fetch(`${API_BASE}/api/auth/refresh`, { method: 'POST', credentials: 'include' });
       if (!refreshed.ok) return null;
-      const current = await fetch('/api/auth/me', { credentials: 'same-origin' });
+      const current = await fetch(`${API_BASE}/api/auth/me`, { credentials: 'include' });
       return current.ok ? pickUser(await current.json()) : null;
     };
     try {
