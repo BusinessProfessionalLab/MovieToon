@@ -698,9 +698,7 @@ export async function getTitleDetail(slug: string): Promise<TitlePageData | unde
 }
 
 async function apiPost<T>(path: string, body: unknown): Promise<T> {
-  const base = isBrowser && !API ? '' : API;
-  if (!isBrowser && !API) throw new Error('NO_API');
-  const res = await fetch(`${base}${path}`, {
+  const res = await fetch(`${base()}${path}`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     credentials: 'include',
@@ -762,9 +760,7 @@ async function writeSlugs(kind: UserListKind, slugs: string[]): Promise<void> {
 }
 
 async function apiPut<T>(path: string, body: unknown): Promise<T> {
-  const base = isBrowser && !API ? '' : API;
-  if (!isBrowser && !API) throw new Error('NO_API');
-  const res = await fetch(`${base}${path}`, {
+  const res = await fetch(`${base()}${path}`, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
     credentials: 'include',
