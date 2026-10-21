@@ -1,7 +1,7 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "rewrites": [{ "source": "/api/:path*", "destination": "/api" }],
   "functions": {
-    "api/index.ts": { "memory": 1024, "maxDuration": 30 }
+    "api/index.ts": { "memory": 1024, "maxDuration": 30 },
+    "api/[...path].ts": { "memory": 1024, "maxDuration": 30 }
   }
 }
