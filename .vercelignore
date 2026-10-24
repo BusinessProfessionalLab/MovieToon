@@ -1,3 +1,0 @@
-# Frontend project: do not build the NestJS backend (deployed as its own
-# Vercel project with Root Directory = api) as serverless functions.
-api
