@@ -2,8 +2,11 @@
 import Base from '../layouts/Base.astro';
 import Breadcrumbs from '../components/Breadcrumbs.astro';
 
-const next = Astro.url.searchParams.get('next');
-const safeNext = next?.startsWith('/') && !next.startsWith('//') ? next : '/profile';
+const user = Astro.locals.user;
+const requestedNext = Astro.url.searchParams.get('next');
+const explicitNext =
+  requestedNext?.startsWith('/') && !requestedNext.startsWith('//') ? requestedNext : null;
+if (user) return Astro.redirect(explicitNext ?? (user.role === 'admin' ? '/admin' : '/profile'));
 ---
 <Base title="ورود" description="ورود امن به حساب کاربری مووی‌تون" noindex>
   <div class="mx-auto max-w-md px-4 py-10">
@@ -31,7 +34,7 @@ const safeNext = next?.startsWith('/') && !next.startsWith('//') ? next : '/prof
     </div>
   </div>
 </Base>
-<script is:inline define:vars={{ safeNext }}>
+<script is:inline define:vars={{ explicitNext }}>
   document.getElementById('login-form')?.addEventListener('submit', async (event) => {
     event.preventDefault();
     const form = event.currentTarget;
@@ -49,7 +52,8 @@ const safeNext = next?.startsWith('/') && !next.startsWith('//') ? next : '/prof
       });
       const result = await response.json();
       if (!response.ok) throw new Error(result.error || 'ورود انجام نشد.');
-      window.location.assign(safeNext);
+      const role = result?.data?.user?.role ?? result?.data?.role;
+      window.location.assign(explicitNext ?? (role === 'admin' ? '/admin' : '/profile'));
     } catch (err) {
       error.textContent = err.message || 'ارتباط با سرور برقرار نشد.';
       error.classList.remove('hidden');
