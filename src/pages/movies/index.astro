@@ -4,7 +4,7 @@ import Breadcrumbs from '../../components/Breadcrumbs.astro';
 import TitleCard from '../../components/TitleCard.astro';
 import Pagination from '../../components/Pagination.astro';
 import EmptyState from '../../components/EmptyState.astro';
-import { getAllTitlesLive, getGenresLive, listTitlesLive } from '../../lib/api';
+import { getGenresLive, listTitlesLive } from '../../lib/api';
 import { toFa } from '../../lib/fa';
 
 const params = Astro.url.searchParams;
@@ -15,17 +15,19 @@ const country = params.get('country') ?? '';
 const minRating = params.get('rating') ? Number(params.get('rating')) : undefined;
 const sort = (params.get('sort') as 'newest' | 'views' | 'rating' | 'year') || 'newest';
 
-const [{ data: items, meta }, allGenres, allTitles] = await Promise.all([
+// Public catalog — works logged-out. Filter dropdowns are static ranges
+// (no full-catalog fetch) so SSR stays fast on Vercel (2 API calls).
+const [{ data: items, meta }, allGenres] = await Promise.all([
   listTitlesLive({ type: 'movie', genre: genre || undefined, year, country: country || undefined, minRating, sort, page, pageSize: 12 }),
   getGenresLive(),
-  getAllTitlesLive(),
 ]);
 const totalPages = meta.totalPages;
 const safe = meta.page;
 const total = meta.total;
 const base = `/movies?genre=${encodeURIComponent(genre)}&year=${year ?? ''}&country=${encodeURIComponent(country)}&rating=${minRating ?? ''}&sort=${sort}`;
-const years = [...new Set(allTitles.map((t) => t.year))].sort((a, b) => b - a);
-const countries = [...new Set(allTitles.flatMap((t) => t.countries))];
+const currentYear = new Date().getFullYear();
+const years = Array.from({ length: currentYear - 1999 }, (_, i) => currentYear - i);
+const countries = ['ایران', 'خارجی'];
 const genres = allGenres;
 ---
 <Base title="فیلم‌ها" description="آرشیو فیلم‌ها با فیلتر ژانر، سال، کشور و امتیاز — مووی‌تون">

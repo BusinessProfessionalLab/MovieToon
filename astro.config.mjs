@@ -21,7 +21,9 @@ export default defineConfig({
     server: {
       // Local dev only: forward browser /api/* calls to the NestJS API.
       // (Build-time SSR uses absolute PUBLIC_API_URL instead.)
-      proxy: { '/api': { target: 'http://localhost:3001', changeOrigin: true } },
+      // NOTE: trailing slash matters — '/api' would also match
+      // '/api-titles.json' (public index, no auth) and break it offline.
+      proxy: { '^/api/.*': { target: 'http://localhost:3001', changeOrigin: true } },
     },
   },
 });

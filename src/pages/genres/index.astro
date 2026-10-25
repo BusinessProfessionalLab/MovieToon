@@ -1,15 +1,11 @@
 ---
 import Base from '../../layouts/Base.astro';
 import Breadcrumbs from '../../components/Breadcrumbs.astro';
-import { getAllTitlesLive, getGenresLive } from '../../lib/api';
-import { toFa } from '../../lib/fa';
+import { getGenresLive } from '../../lib/api';
 
+// Public catalog — works logged-out. Single API call (no full-catalog fetch)
+// so SSR stays fast on Vercel.
 const genres = await getGenresLive();
-const counts: Record<string, number> = {};
-{
-  const all = await getAllTitlesLive();
-  for (const t of all) for (const g of t.genres) counts[g] = (counts[g] ?? 0) + 1;
-}
 ---
 <Base title="ژانرها" description="مرور فیلم‌ها، سریال‌ها و انیمیشن‌ها بر اساس ژانر">
   <div class="mx-auto max-w-7xl px-4 py-6">
@@ -17,12 +13,11 @@ const counts: Record<string, number> = {};
     <h1 class="font-black text-2xl mb-5">ژانرها</h1>
     <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
       {genres.map((g, i) => {
-        const count = counts[g.name] ?? 0;
         return (
           <a href={`/genres/${g.slug}`} class="card p-5 hover:shadow-lg transition-shadow">
             <h2 class="font-black">{g.name}</h2>
             <p class="muted text-xs mt-1 leading-6">{g.description}</p>
-            <p class="text-xs mt-2 font-bold" style="color: var(--brand)">{toFa(count)} عنوان ←</p>
+            <p class="text-xs mt-2 font-bold" style="color: var(--brand)">مشاهده عنوان‌ها ←</p>
           </a>
         );
       })}

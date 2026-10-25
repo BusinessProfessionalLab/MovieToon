@@ -6,8 +6,8 @@
  *   serves via the Vercel rewrite. No CORS involved. Only an explicit
  *   `PUBLIC_API_URL` switches the browser to absolute cross-origin calls.
  * - SSR / build time: absolute `API_INTERNAL_URL` (private, runtime) or
- *   `PUBLIC_API_URL`; otherwise the bundled local mock (identical content to
- *   the DB seed) so builds and offline work never break.
+ *   `PUBLIC_API_URL`, otherwise production `https://api.movietoon.ir` so
+ *   public catalog works logged-out and without dashboard env vars.
  * - Every function falls back to the local mock when the API is unreachable.
  */
 import type { Actor, Collection, DownloadLink, Genre, Title, TitleComment } from '../types';
@@ -17,22 +17,26 @@ import { filterTitles, paginate, routeFor, searchTitles as localSearch, similarT
 const API = (import.meta.env.PUBLIC_API_URL as string | undefined)?.replace(/\/$/, '');
 const isBrowser = typeof window !== 'undefined';
 
+/** Production API — used when no env var is set (e.g. Vercel without dashboard env). */
+const PROD_API = 'https://api.movietoon.ir';
+
 /**
  * Server-only base URL. `API_INTERNAL_URL` is a private (non-PUBLIC_) variable,
  * so it must be read from process.env at runtime instead of being inlined.
+ * Falls back to PUBLIC_API_URL then production so public catalog APIs
+ * (movies/series/genres/...) work even with no env configured and no session.
  */
-function serverApi(): string | undefined {
+function serverApi(): string {
   const proc = (globalThis as { process?: { env?: Record<string, string | undefined> } }).process;
-  return proc?.env?.['API_INTERNAL_URL']?.replace(/\/$/, '');
+  return proc?.env?.['API_INTERNAL_URL']?.replace(/\/$/, '') ?? API ?? PROD_API;
 }
 
 function base(): string {
   // Browser: same-origin relative URL (dev proxy / prod rewrite) unless an
-  // explicit PUBLIC_API_URL is baked in. SSR: absolute URL.
+  // explicit PUBLIC_API_URL is baked in. SSR: absolute URL (never throws —
+  // public APIs must work for logged-out visitors too).
   if (isBrowser) return API ?? '';
-  const ssr = serverApi() ?? API;
-  if (!ssr) throw new Error('NO_API');
-  return ssr;
+  return serverApi();
 }
 
 async function apiGet<T>(path: string, init?: RequestInit): Promise<T> {

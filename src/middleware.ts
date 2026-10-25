@@ -3,7 +3,9 @@ import { defineMiddleware } from 'astro:middleware';
 // Session resolution is delegated to the NestJS API so the frontend
 // never touches password hashes or signing secrets. Runs server-side
 // per request; fails open (logged out) when the API is unreachable.
-const API_BASE = process.env.API_INTERNAL_URL ?? 'http://localhost:3001';
+// Public catalog APIs never depend on this — they work logged-out too.
+// Default to production so Vercel works even without dashboard env vars.
+const API_BASE = process.env.API_INTERNAL_URL ?? 'https://api.movietoon.ir';
 
 interface MeBody {
   success: boolean;
